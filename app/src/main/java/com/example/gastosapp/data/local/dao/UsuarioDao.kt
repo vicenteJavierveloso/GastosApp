@@ -17,6 +17,9 @@ interface UsuarioDao {
     @Query("SELECT * FROM usuarios WHERE nombreusuario = :nombreUsuario LIMIT 1")
     suspend fun obtenerUsuarioPorNombreUsuario(nombreUsuario: String): Usuario?
 
+    @Query("SELECT * FROM usuarios WHERE correo = :correo LIMIT 1")
+    suspend fun obtenerUsuarioPorCorreo(correo: String): Usuario?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertarUsuario(usuario: Usuario)
 
