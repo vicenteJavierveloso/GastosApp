@@ -11,15 +11,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import com.example.gastosapp.data.local.database.GastosDatabase
+import com.example.gastosapp.data.remote.auth.FirebaseAuthRemoteDataSource
+import com.example.gastosapp.data.repository.AuthRepositoryImpl
 import com.example.gastosapp.data.repository.GastoRepositoryImpl
 import com.example.gastosapp.domain.usecase.AgregarGastoUseCase
 import com.example.gastosapp.domain.usecase.EliminarGastoUseCase
 import com.example.gastosapp.domain.usecase.GastoUseCases
+import com.example.gastosapp.domain.usecase.IniciarSesionUseCase
 import com.example.gastosapp.domain.usecase.ObtenerGastosUseCase
 import com.example.gastosapp.presentation.GastosScreen
 import com.example.gastosapp.presentation.GastosViewModel
 import com.example.gastosapp.presentation.HomeScreen
+import com.example.gastosapp.presentation.auth.AuthViewModel
+import com.example.gastosapp.presentation.auth.LoginScreen
 import com.example.gastosapp.ui.theme.GastosAppTheme
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,15 +52,33 @@ class MainActivity : ComponentActivity() {
             agregarGasto = AgregarGastoUseCase(repository),
             eliminarGasto = EliminarGastoUseCase(repository)
         )
+        val authRepository = AuthRepositoryImpl(
+            authRemoteDataSource = FirebaseAuthRemoteDataSource(FirebaseAuth.getInstance()),
+            usuarioDao = database.usuarioDao()
+        )
+        val iniciarSesionUseCase = IniciarSesionUseCase(authRepository)
         
-        val viewModelFactory = object : ViewModelProvider.Factory {
+        val gastosViewModelFactory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return GastosViewModel(useCases) as T
             }
         }
+        val authViewModelFactory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return AuthViewModel(iniciarSesionUseCase) as T
+            }
+        }
         
-        val viewModel = ViewModelProvider(this, viewModelFactory)[GastosViewModel::class.java]
+        val gastosViewModel = ViewModelProvider(
+            this,
+            gastosViewModelFactory
+        )[GastosViewModel::class.java]
+        val authViewModel = ViewModelProvider(
+            this,
+            authViewModelFactory
+        )[AuthViewModel::class.java]
 
         enableEdgeToEdge()
         setContent {
@@ -63,8 +87,20 @@ class MainActivity : ComponentActivity() {
                 
                 NavHost(
                     navController = navController,
-                    startDestination = "home"
+                    startDestination = "login"
                 ) {
+                    composable("login") {
+                        LoginScreen(
+                            viewModel = authViewModel,
+                            onLoginSuccess = {
+                                navController.navigate("home") {
+                                    popUpTo("login") {
+                                        inclusive = true
+                                    }
+                                }
+                            }
+                        )
+                    }
                     composable("home") {
                         HomeScreen(
                             onNavigateToGastos = {
@@ -74,7 +110,7 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("gastos") {
                         GastosScreen(
-                            viewModel = viewModel,
+                            viewModel = gastosViewModel,
                             onBack = { navController.popBackStack() }
                         )
                     }

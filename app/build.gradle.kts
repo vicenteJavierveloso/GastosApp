@@ -4,6 +4,18 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val googleServicesFiles = listOf(
+    file("google-services.json"),
+    file("src/google-services.json"),
+    file("src/main/google-services.json"),
+    file("src/debug/google-services.json"),
+    file("src/release/google-services.json")
+)
+
+if (googleServicesFiles.any { it.exists() }) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.example.gastosapp"
     compileSdk {
@@ -61,6 +73,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
