@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onNavigateToExpenses: () -> Unit
+    onNavigateToGastos: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -25,7 +25,7 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
-                onClick = onNavigateToExpenses,
+                onClick = onNavigateToGastos,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 32.dp)
