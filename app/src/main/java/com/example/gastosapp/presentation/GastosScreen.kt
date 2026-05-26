@@ -7,17 +7,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.gastosapp.domain.model.Expense
+import com.example.gastosapp.domain.model.Gasto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpensesScreen(
-    viewModel: ExpensesViewModel,
+fun GastosScreen(
+    viewModel: GastosViewModel,
     onBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
-    var description by remember { mutableStateOf("") }
-    var amount by remember { mutableStateOf("") }
+    var detalle by remember { mutableStateOf("") }
+    var monto by remember { mutableStateOf("") }
+    var nombreDeUsuario by remember { mutableStateOf("") }
+    var nombreCategoria by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -46,26 +48,48 @@ fun ExpensesScreen(
             }
             
             TextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Descripción") },
+                value = detalle,
+                onValueChange = { detalle = it },
+                label = { Text("Detalle") },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
             TextField(
-                value = amount,
-                onValueChange = { amount = it },
+                value = monto,
+                onValueChange = { monto = it },
                 label = { Text("Monto") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            TextField(
+                value = nombreDeUsuario,
+                onValueChange = { nombreDeUsuario = it },
+                label = { Text("Nombre de usuario") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            TextField(
+                value = nombreCategoria,
+                onValueChange = { nombreCategoria = it },
+                label = { Text("Categoría") },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = {
-                    val amountDouble = amount.toDoubleOrNull() ?: 0.0
-                    viewModel.onEvent(ExpensesEvent.AddExpense(description, amountDouble))
+                    val montoInt = monto.toIntOrNull() ?: 0
+                    viewModel.onEvent(
+                        GastosEvent.AgregarGasto(
+                            detalle = detalle,
+                            monto = montoInt,
+                            nombreDeUsuario = nombreDeUsuario,
+                            nombreCategoria = nombreCategoria
+                        )
+                    )
                     if (state.error == null) {
-                        description = ""
-                        amount = ""
+                        detalle = ""
+                        monto = ""
+                        nombreCategoria = ""
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -74,10 +98,10 @@ fun ExpensesScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn {
-                items(state.expenses) { expense ->
-                    ExpenseItem(
-                        expense = expense,
-                        onDelete = { viewModel.onEvent(ExpensesEvent.DeleteExpense(expense)) }
+                items(state.gastos) { gasto ->
+                    GastoItem(
+                        gasto = gasto,
+                        onDelete = { viewModel.onEvent(GastosEvent.EliminarGasto(gasto)) }
                     )
                 }
             }
@@ -86,8 +110,8 @@ fun ExpensesScreen(
 }
 
 @Composable
-fun ExpenseItem(
-    expense: Expense,
+fun GastoItem(
+    gasto: Gasto,
     onDelete: () -> Unit
 ) {
     Card(
@@ -102,8 +126,12 @@ fun ExpenseItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(text = expense.description, style = MaterialTheme.typography.titleMedium)
-                Text(text = "$${expense.amount}", style = MaterialTheme.typography.bodyMedium)
+                Text(text = gasto.detalle, style = MaterialTheme.typography.titleMedium)
+                Text(text = "$${gasto.monto}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "${gasto.nombreCategoria} - ${gasto.nombreDeUsuario}",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
             IconButton(onClick = onDelete) {
                 Text("X")

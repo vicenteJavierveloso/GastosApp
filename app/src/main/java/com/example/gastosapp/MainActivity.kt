@@ -9,13 +9,15 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.gastosapp.data.repository.ExpenseRepositoryImpl
-import com.example.gastosapp.domain.usecase.AddExpenseUseCase
-import com.example.gastosapp.domain.usecase.DeleteExpenseUseCase
-import com.example.gastosapp.domain.usecase.ExpenseUseCases
-import com.example.gastosapp.domain.usecase.GetExpensesUseCase
-import com.example.gastosapp.presentation.ExpensesScreen
-import com.example.gastosapp.presentation.ExpensesViewModel
+import androidx.room.Room
+import com.example.gastosapp.data.local.database.GastosDatabase
+import com.example.gastosapp.data.repository.GastoRepositoryImpl
+import com.example.gastosapp.domain.usecase.AgregarGastoUseCase
+import com.example.gastosapp.domain.usecase.EliminarGastoUseCase
+import com.example.gastosapp.domain.usecase.GastoUseCases
+import com.example.gastosapp.domain.usecase.ObtenerGastosUseCase
+import com.example.gastosapp.presentation.GastosScreen
+import com.example.gastosapp.presentation.GastosViewModel
 import com.example.gastosapp.presentation.HomeScreen
 import com.example.gastosapp.ui.theme.GastosAppTheme
 
@@ -23,22 +25,36 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Manual Dependency Injection (Placeholder for Hilt/Koin)
-        val repository = ExpenseRepositoryImpl()
-        val useCases = ExpenseUseCases(
-            getExpenses = GetExpensesUseCase(repository),
-            addExpense = AddExpenseUseCase(repository),
-            deleteExpense = DeleteExpenseUseCase(repository)
+        val database = Room.databaseBuilder(
+            applicationContext,
+            GastosDatabase::class.java,
+            "gastos.db"
+        ).addMigrations(
+            GastosDatabase.MIGRATION_2_3,
+            GastosDatabase.MIGRATION_3_4
+        )
+            .fallbackToDestructiveMigration(false)
+            .build()
+
+        val repository = GastoRepositoryImpl(
+            gastoDao = database.gastoDao(),
+            categoriaDao = database.categoriaDao(),
+            usuarioDao = database.usuarioDao()
+        )
+        val useCases = GastoUseCases(
+            obtenerGastos = ObtenerGastosUseCase(repository),
+            agregarGasto = AgregarGastoUseCase(repository),
+            eliminarGasto = EliminarGastoUseCase(repository)
         )
         
         val viewModelFactory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ExpensesViewModel(useCases) as T
+                return GastosViewModel(useCases) as T
             }
         }
         
-        val viewModel = ViewModelProvider(this, viewModelFactory)[ExpensesViewModel::class.java]
+        val viewModel = ViewModelProvider(this, viewModelFactory)[GastosViewModel::class.java]
 
         enableEdgeToEdge()
         setContent {
@@ -51,13 +67,13 @@ class MainActivity : ComponentActivity() {
                 ) {
                     composable("home") {
                         HomeScreen(
-                            onNavigateToExpenses = {
-                                navController.navigate("expenses")
+                            onNavigateToGastos = {
+                                navController.navigate("gastos")
                             }
                         )
                     }
-                    composable("expenses") {
-                        ExpensesScreen(
+                    composable("gastos") {
+                        GastosScreen(
                             viewModel = viewModel,
                             onBack = { navController.popBackStack() }
                         )
