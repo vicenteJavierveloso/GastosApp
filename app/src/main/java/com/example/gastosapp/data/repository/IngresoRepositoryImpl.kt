@@ -24,7 +24,7 @@ class IngresoRepositoryImpl(
     }
 
     override suspend fun insertarIngreso(ingreso: Ingreso) {
-        categoriaDao.insertarCategoria(Categoria(nombre = ingreso.nombreCategoria))
+        categoriaDao.insertarCategoria(Categoria(nombre = ingreso.nombreCategoria, tipo = "INGRESO"))
         if (usuarioDao.obtenerUsuarioPorNombreUsuario(ingreso.nombreDeUsuario) == null) {
             usuarioDao.insertarUsuario(
                 Usuario(

@@ -2,6 +2,7 @@ package com.example.gastosapp.data.repository
 
 import com.example.gastosapp.data.local.dao.CategoriaDao
 import com.example.gastosapp.domain.model.Categoria
+import com.example.gastosapp.domain.model.TipoCategoria
 import com.example.gastosapp.domain.repository.CategoriaRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -16,6 +17,12 @@ class CategoriaRepositoryImpl(
         }
     }
 
+    override fun obtenerCategoriasPorTipo(tipo: TipoCategoria): Flow<List<Categoria>> {
+        return categoriaDao.obtenerCategoriasPorTipo(tipo.name).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
     override suspend fun insertarCategoria(categoria: Categoria) {
         categoriaDao.insertarCategoria(categoria.toEntity())
     }
@@ -25,10 +32,16 @@ class CategoriaRepositoryImpl(
     }
 
     private fun CategoriaEntity.toDomain(): Categoria {
-        return Categoria(nombre = nombre)
+        return Categoria(
+            nombre = nombre,
+            tipo = try { TipoCategoria.valueOf(tipo) } catch (e: Exception) { TipoCategoria.GASTO }
+        )
     }
 
     private fun Categoria.toEntity(): CategoriaEntity {
-        return CategoriaEntity(nombre = nombre)
+        return CategoriaEntity(
+            nombre = nombre,
+            tipo = tipo.name
+        )
     }
 }

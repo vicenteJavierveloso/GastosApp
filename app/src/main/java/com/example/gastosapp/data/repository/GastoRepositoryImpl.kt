@@ -24,7 +24,7 @@ class GastoRepositoryImpl(
     }
 
     override suspend fun insertarGasto(gasto: Gasto) {
-        categoriaDao.insertarCategoria(Categoria(nombre = gasto.nombreCategoria))
+        categoriaDao.insertarCategoria(Categoria(nombre = gasto.nombreCategoria, tipo = "GASTO"))
         if (usuarioDao.obtenerUsuarioPorNombreUsuario(gasto.nombreDeUsuario) == null) {
             usuarioDao.insertarUsuario(
                 Usuario(
