@@ -3,6 +3,7 @@ package com.example.gastosapp.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gastosapp.domain.model.Categoria
+import com.example.gastosapp.domain.model.TipoCategoria
 import com.example.gastosapp.domain.usecase.CategoriaUseCases
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +26,7 @@ class CategoriasViewModel(
     fun onEvent(event: CategoriasEvent) {
         when (event) {
             is CategoriasEvent.AgregarCategoria -> {
-                agregarCategoria(event.nombre)
+                agregarCategoria(event.nombre, event.tipo)
             }
             is CategoriasEvent.EliminarCategoria -> {
                 eliminarCategoria(event.categoria)
@@ -41,10 +42,10 @@ class CategoriasViewModel(
         }.launchIn(viewModelScope)
     }
 
-    private fun agregarCategoria(nombre: String) {
+    private fun agregarCategoria(nombre: String, tipo: TipoCategoria) {
         viewModelScope.launch {
             try {
-                val categoria = Categoria(nombre = nombre)
+                val categoria = Categoria(nombre = nombre, tipo = tipo)
                 categoriaUseCases.agregarCategoria(categoria)
                 _state.value = _state.value.copy(error = null)
             } catch (e: Exception) {

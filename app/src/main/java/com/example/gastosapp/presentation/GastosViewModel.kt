@@ -3,8 +3,9 @@ package com.example.gastosapp.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gastosapp.domain.model.Gasto
+import com.example.gastosapp.domain.model.TipoCategoria
 import com.example.gastosapp.domain.usecase.GastoUseCases
-import com.example.gastosapp.domain.usecase.ObtenerCategoriasUseCase
+import com.example.gastosapp.domain.usecase.ObtenerCategoriasPorTipoUseCase
 import com.example.gastosapp.domain.usecase.ObtenerUsuarioActualUseCase
 import java.util.Date
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,7 @@ import kotlinx.coroutines.launch
 
 class GastosViewModel(
     private val gastoUseCases: GastoUseCases,
-    private val obtenerCategoriasUseCase: ObtenerCategoriasUseCase,
+    private val obtenerCategoriasPorTipoUseCase: ObtenerCategoriasPorTipoUseCase,
     private val obtenerUsuarioActualUseCase: ObtenerUsuarioActualUseCase
 ) : ViewModel() {
 
@@ -53,7 +54,7 @@ class GastosViewModel(
     }
 
     private fun obtenerCategorias() {
-        obtenerCategoriasUseCase().onEach { categorias ->
+        obtenerCategoriasPorTipoUseCase(TipoCategoria.GASTO).onEach { categorias ->
             _state.value = state.value.copy(
                 categorias = categorias
             )
