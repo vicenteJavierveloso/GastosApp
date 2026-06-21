@@ -36,6 +36,31 @@ class AuthRepositoryImpl(
         return usuarioActualizado.toDomain()
     }
 
+    override suspend fun obtenerUsuarioActual(): Usuario? {
+        val firebaseUser = authRemoteDataSource.obtenerUsuarioActual() ?: return null
+        val usuarioLocal = usuarioDao.obtenerUsuarioPorCorreo(firebaseUser.correo)
+        val fechaInicioSesion = Date()
+
+        val usuarioActualizado = if (usuarioLocal != null) {
+            usuarioLocal.copy(
+                nombre = firebaseUser.nombre ?: usuarioLocal.nombre,
+                correo = firebaseUser.correo,
+                ultimoInicioDeSesion = fechaInicioSesion
+            )
+        } else {
+            UsuarioEntity(
+                nombreUsuario = generarNombreUsuario(firebaseUser.correo),
+                nombre = firebaseUser.nombre ?: generarNombreDesdeCorreo(firebaseUser.correo),
+                correo = firebaseUser.correo,
+                ultimoInicioDeSesion = fechaInicioSesion,
+                contrasena = ""
+            )
+        }
+
+        usuarioDao.insertarUsuario(usuarioActualizado)
+        return usuarioActualizado.toDomain()
+    }
+
     private suspend fun generarNombreUsuario(correo: String): String {
         val base = normalizarNombreUsuario(correo.substringBefore("@").ifBlank { "usuario" })
         var candidato = base

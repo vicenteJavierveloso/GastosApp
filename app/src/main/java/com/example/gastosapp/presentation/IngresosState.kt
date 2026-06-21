@@ -1,10 +1,10 @@
 package com.example.gastosapp.presentation
 
 import com.example.gastosapp.domain.model.Categoria
-import com.example.gastosapp.domain.model.Gasto
+import com.example.gastosapp.domain.model.Ingreso
 
-data class GastosState(
-    val gastos: List<Gasto> = emptyList(),
+data class IngresosState(
+    val ingresos: List<Ingreso> = emptyList(),
     val categorias: List<Categoria> = emptyList(),
     val nombreDeUsuario: String = "",
     val isLoading: Boolean = false,

@@ -6,7 +6,6 @@ sealed class GastosEvent {
     data class AgregarGasto(
         val detalle: String,
         val monto: Int,
-        val nombreDeUsuario: String,
         val nombreCategoria: String
     ) : GastosEvent()
 

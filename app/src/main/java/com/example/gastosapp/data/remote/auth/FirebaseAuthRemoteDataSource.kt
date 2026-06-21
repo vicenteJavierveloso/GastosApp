@@ -23,6 +23,15 @@ class FirebaseAuthRemoteDataSource(
         )
     }
 
+    override fun obtenerUsuarioActual(): AuthenticatedFirebaseUser? {
+        val firebaseUser = firebaseAuth.currentUser ?: return null
+        return AuthenticatedFirebaseUser(
+            uid = firebaseUser.uid,
+            correo = firebaseUser.email ?: "",
+            nombre = firebaseUser.displayName
+        )
+    }
+
     private suspend fun Task<AuthResult>.await(): AuthResult {
         return suspendCancellableCoroutine { continuation ->
             addOnCompleteListener { task ->

@@ -8,12 +8,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.gastosapp.domain.model.Gasto
+import com.example.gastosapp.domain.model.Ingreso
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GastosScreen(
-    viewModel: GastosViewModel,
+fun IngresosScreen(
+    viewModel: IngresosViewModel,
     onBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -25,10 +25,10 @@ fun GastosScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Gestionar Gastos") },
+                title = { Text("Gestionar Ingresos") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Text("<") // Placeholder para icono de volver
+                        Text("<")
                     }
                 }
             )
@@ -47,7 +47,7 @@ fun GastosScreen(
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
-            
+
             Text(
                 text = "Usuario actual: ${state.nombreDeUsuario.ifBlank { "Cargando..." }}",
                 style = MaterialTheme.typography.bodyLarge,
@@ -120,7 +120,7 @@ fun GastosScreen(
                 onClick = {
                     val montoInt = monto.toIntOrNull() ?: 0
                     viewModel.onEvent(
-                        GastosEvent.AgregarGasto(
+                        IngresosEvent.AgregarIngreso(
                             detalle = detalle,
                             monto = montoInt,
                             nombreCategoria = nombreCategoria
@@ -134,14 +134,14 @@ fun GastosScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Agregar Gasto")
+                Text("Agregar Ingreso")
             }
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn {
-                items(state.gastos) { gasto ->
-                    GastoItem(
-                        gasto = gasto,
-                        onDelete = { viewModel.onEvent(GastosEvent.EliminarGasto(gasto)) }
+                items(state.ingresos) { ingreso ->
+                    IngresoItem(
+                        ingreso = ingreso,
+                        onDelete = { viewModel.onEvent(IngresosEvent.EliminarIngreso(ingreso)) }
                     )
                 }
             }
@@ -150,8 +150,8 @@ fun GastosScreen(
 }
 
 @Composable
-fun GastoItem(
-    gasto: Gasto,
+fun IngresoItem(
+    ingreso: Ingreso,
     onDelete: () -> Unit
 ) {
     Card(
@@ -166,10 +166,10 @@ fun GastoItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(text = gasto.detalle, style = MaterialTheme.typography.titleMedium)
-                Text(text = "$${gasto.monto}", style = MaterialTheme.typography.bodyMedium)
+                Text(text = ingreso.detalle, style = MaterialTheme.typography.titleMedium)
+                Text(text = "$${ingreso.monto}", style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    text = "${gasto.nombreCategoria} - ${gasto.nombreDeUsuario}",
+                    text = "${ingreso.nombreCategoria} - ${ingreso.nombreDeUsuario}",
                     style = MaterialTheme.typography.bodySmall
                 )
             }

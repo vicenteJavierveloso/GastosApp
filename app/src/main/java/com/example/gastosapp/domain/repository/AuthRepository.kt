@@ -4,4 +4,5 @@ import com.example.gastosapp.domain.model.Usuario
 
 interface AuthRepository {
     suspend fun iniciarSesion(correo: String, contrasena: String): Usuario
+    suspend fun obtenerUsuarioActual(): Usuario?
 }

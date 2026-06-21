@@ -2,8 +2,8 @@ package com.example.gastosapp.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gastosapp.domain.model.Gasto
-import com.example.gastosapp.domain.usecase.GastoUseCases
+import com.example.gastosapp.domain.model.Ingreso
+import com.example.gastosapp.domain.usecase.IngresoUseCases
 import com.example.gastosapp.domain.usecase.ObtenerCategoriasUseCase
 import com.example.gastosapp.domain.usecase.ObtenerUsuarioActualUseCase
 import java.util.Date
@@ -14,40 +14,40 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class GastosViewModel(
-    private val gastoUseCases: GastoUseCases,
+class IngresosViewModel(
+    private val ingresoUseCases: IngresoUseCases,
     private val obtenerCategoriasUseCase: ObtenerCategoriasUseCase,
     private val obtenerUsuarioActualUseCase: ObtenerUsuarioActualUseCase
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(GastosState())
-    val state: StateFlow<GastosState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(IngresosState())
+    val state: StateFlow<IngresosState> = _state.asStateFlow()
 
     init {
-        obtenerGastos()
+        obtenerIngresos()
         obtenerCategorias()
         cargarUsuarioActual()
     }
 
-    fun onEvent(event: GastosEvent) {
+    fun onEvent(event: IngresosEvent) {
         when (event) {
-            is GastosEvent.AgregarGasto -> {
-                agregarGasto(
+            is IngresosEvent.AgregarIngreso -> {
+                agregarIngreso(
                     detalle = event.detalle,
                     monto = event.monto,
                     nombreCategoria = event.nombreCategoria
                 )
             }
-            is GastosEvent.EliminarGasto -> {
-                eliminarGasto(event.gasto)
+            is IngresosEvent.EliminarIngreso -> {
+                eliminarIngreso(event.ingreso)
             }
         }
     }
 
-    private fun obtenerGastos() {
-        gastoUseCases.obtenerGastos().onEach { gastos ->
+    private fun obtenerIngresos() {
+        ingresoUseCases.obtenerIngresos().onEach { ingresos ->
             _state.value = state.value.copy(
-                gastos = gastos
+                ingresos = ingresos
             )
         }.launchIn(viewModelScope)
     }
@@ -77,7 +77,7 @@ class GastosViewModel(
         }
     }
 
-    private fun agregarGasto(
+    private fun agregarIngreso(
         detalle: String,
         monto: Int,
         nombreCategoria: String
@@ -88,14 +88,14 @@ class GastosViewModel(
                 if (username.isBlank()) {
                     throw Exception("No hay un usuario autenticado.")
                 }
-                val gasto = Gasto(
+                val ingreso = Ingreso(
                     monto = monto,
                     detalle = detalle,
                     nombreDeUsuario = username,
                     nombreCategoria = nombreCategoria,
                     fecha = Date()
                 )
-                gastoUseCases.agregarGasto(gasto)
+                ingresoUseCases.agregarIngreso(ingreso)
                 _state.value = _state.value.copy(error = null)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(error = e.message ?: "Error desconocido")
@@ -103,9 +103,9 @@ class GastosViewModel(
         }
     }
 
-    private fun eliminarGasto(gasto: Gasto) {
+    private fun eliminarIngreso(ingreso: Ingreso) {
         viewModelScope.launch {
-            gastoUseCases.eliminarGasto(gasto)
+            ingresoUseCases.eliminarIngreso(ingreso)
         }
     }
 }

@@ -13,15 +13,31 @@ import androidx.room.Room
 import com.example.gastosapp.data.local.database.GastosDatabase
 import com.example.gastosapp.data.remote.auth.FirebaseAuthRemoteDataSource
 import com.example.gastosapp.data.repository.AuthRepositoryImpl
+import com.example.gastosapp.data.repository.CategoriaRepositoryImpl
 import com.example.gastosapp.data.repository.GastoRepositoryImpl
+import com.example.gastosapp.data.repository.IngresoRepositoryImpl
+import com.example.gastosapp.domain.usecase.AgregarCategoriaUseCase
 import com.example.gastosapp.domain.usecase.AgregarGastoUseCase
+import com.example.gastosapp.domain.usecase.AgregarIngresoUseCase
+import com.example.gastosapp.domain.usecase.CategoriaUseCases
+import com.example.gastosapp.domain.usecase.EliminarCategoriaUseCase
 import com.example.gastosapp.domain.usecase.EliminarGastoUseCase
+import com.example.gastosapp.domain.usecase.EliminarIngresoUseCase
 import com.example.gastosapp.domain.usecase.GastoUseCases
 import com.example.gastosapp.domain.usecase.IniciarSesionUseCase
+import com.example.gastosapp.domain.usecase.IngresoUseCases
+import com.example.gastosapp.domain.usecase.ObtenerCategoriasUseCase
 import com.example.gastosapp.domain.usecase.ObtenerGastosUseCase
+import com.example.gastosapp.domain.usecase.ObtenerIngresosUseCase
+import com.example.gastosapp.domain.usecase.ObtenerUsuarioActualUseCase
+import com.example.gastosapp.presentation.CategoriasScreen
+import com.example.gastosapp.presentation.CategoriasViewModel
 import com.example.gastosapp.presentation.GastosScreen
 import com.example.gastosapp.presentation.GastosViewModel
 import com.example.gastosapp.presentation.HomeScreen
+import com.example.gastosapp.presentation.HomeViewModel
+import com.example.gastosapp.presentation.IngresosScreen
+import com.example.gastosapp.presentation.IngresosViewModel
 import com.example.gastosapp.presentation.auth.AuthViewModel
 import com.example.gastosapp.presentation.auth.LoginScreen
 import com.example.gastosapp.ui.theme.GastosAppTheme
@@ -47,21 +63,55 @@ class MainActivity : ComponentActivity() {
             categoriaDao = database.categoriaDao(),
             usuarioDao = database.usuarioDao()
         )
+        val ingresoRepository = IngresoRepositoryImpl(
+            ingresoDao = database.ingresoDao(),
+            categoriaDao = database.categoriaDao(),
+            usuarioDao = database.usuarioDao()
+        )
+        val categoriaRepository = CategoriaRepositoryImpl(
+            categoriaDao = database.categoriaDao()
+        )
+
         val useCases = GastoUseCases(
             obtenerGastos = ObtenerGastosUseCase(repository),
             agregarGasto = AgregarGastoUseCase(repository),
             eliminarGasto = EliminarGastoUseCase(repository)
         )
+        val ingresoUseCases = IngresoUseCases(
+            obtenerIngresos = ObtenerIngresosUseCase(ingresoRepository),
+            agregarIngreso = AgregarIngresoUseCase(ingresoRepository),
+            eliminarIngreso = EliminarIngresoUseCase(ingresoRepository)
+        )
+        val categoriaUseCases = CategoriaUseCases(
+            obtenerCategorias = ObtenerCategoriasUseCase(categoriaRepository),
+            agregarCategoria = AgregarCategoriaUseCase(categoriaRepository),
+            eliminarCategoria = EliminarCategoriaUseCase(categoriaRepository)
+        )
+
         val authRepository = AuthRepositoryImpl(
             authRemoteDataSource = FirebaseAuthRemoteDataSource(FirebaseAuth.getInstance()),
             usuarioDao = database.usuarioDao()
         )
         val iniciarSesionUseCase = IniciarSesionUseCase(authRepository)
+        val obtenerUsuarioActualUseCase = ObtenerUsuarioActualUseCase(authRepository)
         
         val gastosViewModelFactory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return GastosViewModel(useCases) as T
+                return GastosViewModel(
+                    gastoUseCases = useCases,
+                    obtenerCategoriasUseCase = categoriaUseCases.obtenerCategorias,
+                    obtenerUsuarioActualUseCase = obtenerUsuarioActualUseCase
+                ) as T
+            }
+        }
+        val homeViewModelFactory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return HomeViewModel(
+                    obtenerGastos = useCases.obtenerGastos,
+                    obtenerIngresos = ingresoUseCases.obtenerIngresos
+                ) as T
             }
         }
         val authViewModelFactory = object : ViewModelProvider.Factory {
@@ -70,15 +120,43 @@ class MainActivity : ComponentActivity() {
                 return AuthViewModel(iniciarSesionUseCase) as T
             }
         }
+        val categoriasViewModelFactory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return CategoriasViewModel(categoriaUseCases) as T
+            }
+        }
+        val ingresosViewModelFactory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return IngresosViewModel(
+                    ingresoUseCases = ingresoUseCases,
+                    obtenerCategoriasUseCase = categoriaUseCases.obtenerCategorias,
+                    obtenerUsuarioActualUseCase = obtenerUsuarioActualUseCase
+                ) as T
+            }
+        }
         
         val gastosViewModel = ViewModelProvider(
             this,
             gastosViewModelFactory
         )[GastosViewModel::class.java]
+        val homeViewModel = ViewModelProvider(
+            this,
+            homeViewModelFactory
+        )[HomeViewModel::class.java]
         val authViewModel = ViewModelProvider(
             this,
             authViewModelFactory
         )[AuthViewModel::class.java]
+        val categoriasViewModel = ViewModelProvider(
+            this,
+            categoriasViewModelFactory
+        )[CategoriasViewModel::class.java]
+        val ingresosViewModel = ViewModelProvider(
+            this,
+            ingresosViewModelFactory
+        )[IngresosViewModel::class.java]
 
         enableEdgeToEdge()
         setContent {
@@ -103,14 +181,33 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("home") {
                         HomeScreen(
+                            viewModel = homeViewModel,
                             onNavigateToGastos = {
                                 navController.navigate("gastos")
+                            },
+                            onNavigateToIngresos = {
+                                navController.navigate("ingresos")
+                            },
+                            onNavigateToCategorias = {
+                                navController.navigate("categorias")
                             }
                         )
                     }
                     composable("gastos") {
                         GastosScreen(
                             viewModel = gastosViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable("ingresos") {
+                        IngresosScreen(
+                            viewModel = ingresosViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable("categorias") {
+                        CategoriasScreen(
+                            viewModel = categoriasViewModel,
                             onBack = { navController.popBackStack() }
                         )
                     }
