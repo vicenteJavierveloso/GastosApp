@@ -27,6 +27,7 @@ import com.example.gastosapp.domain.usecase.GastoUseCases
 import com.example.gastosapp.domain.usecase.IniciarSesionUseCase
 import com.example.gastosapp.domain.usecase.IngresoUseCases
 import com.example.gastosapp.domain.usecase.ObtenerCategoriasUseCase
+import com.example.gastosapp.domain.usecase.ObtenerCategoriasPorTipoUseCase
 import com.example.gastosapp.domain.usecase.ObtenerGastosUseCase
 import com.example.gastosapp.domain.usecase.ObtenerIngresosUseCase
 import com.example.gastosapp.domain.usecase.ObtenerUsuarioActualUseCase
@@ -53,7 +54,8 @@ class MainActivity : ComponentActivity() {
             "gastos.db"
         ).addMigrations(
             GastosDatabase.MIGRATION_2_3,
-            GastosDatabase.MIGRATION_3_4
+            GastosDatabase.MIGRATION_3_4,
+            GastosDatabase.MIGRATION_4_5
         )
             .fallbackToDestructiveMigration(false)
             .build()
@@ -84,6 +86,7 @@ class MainActivity : ComponentActivity() {
         )
         val categoriaUseCases = CategoriaUseCases(
             obtenerCategorias = ObtenerCategoriasUseCase(categoriaRepository),
+            obtenerCategoriasPorTipo = ObtenerCategoriasPorTipoUseCase(categoriaRepository),
             agregarCategoria = AgregarCategoriaUseCase(categoriaRepository),
             eliminarCategoria = EliminarCategoriaUseCase(categoriaRepository)
         )
@@ -100,7 +103,7 @@ class MainActivity : ComponentActivity() {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return GastosViewModel(
                     gastoUseCases = useCases,
-                    obtenerCategoriasUseCase = categoriaUseCases.obtenerCategorias,
+                    obtenerCategoriasPorTipoUseCase = categoriaUseCases.obtenerCategoriasPorTipo,
                     obtenerUsuarioActualUseCase = obtenerUsuarioActualUseCase
                 ) as T
             }
@@ -131,7 +134,7 @@ class MainActivity : ComponentActivity() {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return IngresosViewModel(
                     ingresoUseCases = ingresoUseCases,
-                    obtenerCategoriasUseCase = categoriaUseCases.obtenerCategorias,
+                    obtenerCategoriasPorTipoUseCase = categoriaUseCases.obtenerCategoriasPorTipo,
                     obtenerUsuarioActualUseCase = obtenerUsuarioActualUseCase
                 ) as T
             }
