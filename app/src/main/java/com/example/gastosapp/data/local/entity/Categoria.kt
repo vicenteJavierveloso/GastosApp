@@ -8,11 +8,17 @@ import androidx.room.PrimaryKey
 data class Categoria(
     @PrimaryKey
     @ColumnInfo(name = "nombre")
-    val nombre: String
+    val nombre: String,
+
+    @ColumnInfo(name = "tipo")
+    val tipo: String
 ) {
     init {
         require(nombre.length <= 30) {
             "nombre no puede superar 30 caracteres"
+        }
+        require(tipo == "GASTO" || tipo == "INGRESO") {
+            "tipo de categoria invalido"
         }
     }
 }

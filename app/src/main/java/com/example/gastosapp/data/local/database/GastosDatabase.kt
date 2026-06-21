@@ -18,7 +18,7 @@ import com.example.gastosapp.data.local.entity.Usuario
 
 @Database(
     entities = [Usuario::class, Categoria::class, Gasto::class, Ingreso::class, Meta::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -73,6 +73,12 @@ abstract class GastosDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS index_metas_nombredeusuario ON metas(nombredeusuario)"
                 )
+            }
+        }
+
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE categorias ADD COLUMN tipo TEXT NOT NULL DEFAULT 'GASTO'")
             }
         }
     }

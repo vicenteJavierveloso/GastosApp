@@ -13,6 +13,9 @@ interface CategoriaDao {
     @Query("SELECT * FROM categorias ORDER BY nombre ASC")
     fun obtenerCategorias(): Flow<List<Categoria>>
 
+    @Query("SELECT * FROM categorias WHERE tipo = :tipo ORDER BY nombre ASC")
+    fun obtenerCategoriasPorTipo(tipo: String): Flow<List<Categoria>>
+
     @Query("SELECT * FROM categorias WHERE nombre = :nombre LIMIT 1")
     suspend fun obtenerCategoriaPorNombre(nombre: String): Categoria?
 
