@@ -7,8 +7,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.gastosapp.domain.model.Gasto
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,7 +25,12 @@ fun GastosScreen(
     var detalle by remember { mutableStateOf("") }
     var monto by remember { mutableStateOf("") }
     var nombreCategoria by remember { mutableStateOf("") }
+    var fecha by remember { mutableStateOf(Date()) }
     var dropdownExpanded by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
     Scaffold(
         topBar = {
@@ -67,6 +77,50 @@ fun GastosScreen(
                 label = { Text("Monto") },
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Date picker field
+            Box(modifier = Modifier.fillMaxWidth()) {
+                TextField(
+                    value = dateFormatter.format(fecha),
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Fecha") },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false,
+                    colors = TextFieldDefaults.colors(
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable {
+                            calendar.time = fecha
+                            val datePickerDialog = android.app.DatePickerDialog(
+                                context,
+                                { _, year, month, dayOfMonth ->
+                                    val selectedCal = Calendar.getInstance()
+                                    selectedCal.set(year, month, dayOfMonth)
+                                    fecha = selectedCal.time
+                                },
+                                calendar.get(Calendar.YEAR),
+                                calendar.get(Calendar.MONTH),
+                                calendar.get(Calendar.DAY_OF_MONTH)
+                            )
+                            val minCal = Calendar.getInstance()
+                            minCal.add(Calendar.DAY_OF_YEAR, -15)
+                            datePickerDialog.datePicker.minDate = minCal.timeInMillis
+
+                            val maxCal = Calendar.getInstance()
+                            maxCal.add(Calendar.DAY_OF_YEAR, 15)
+                            datePickerDialog.datePicker.maxDate = maxCal.timeInMillis
+
+                            datePickerDialog.show()
+                        }
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
 
             // Categorías dropdown
@@ -123,13 +177,15 @@ fun GastosScreen(
                         GastosEvent.AgregarGasto(
                             detalle = detalle,
                             monto = montoInt,
-                            nombreCategoria = nombreCategoria
+                            nombreCategoria = nombreCategoria,
+                            fecha = fecha
                         )
                     )
                     if (state.error == null) {
                         detalle = ""
                         monto = ""
                         nombreCategoria = ""
+                        fecha = Date()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -154,6 +210,7 @@ fun GastoItem(
     gasto: Gasto,
     onDelete: () -> Unit
 ) {
+    val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -171,6 +228,11 @@ fun GastoItem(
                 Text(
                     text = "${gasto.nombreCategoria} - ${gasto.nombreDeUsuario}",
                     style = MaterialTheme.typography.bodySmall
+                )
+                Text(
+                    text = dateFormatter.format(gasto.fecha),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
                 )
             }
             IconButton(onClick = onDelete) {
