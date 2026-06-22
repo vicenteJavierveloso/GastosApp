@@ -80,6 +80,45 @@ class AuthRepositoryImpl(
         return usuarioActualizado.toDomain()
     }
 
+    override suspend fun registrarUsuario(
+        nombreUsuario: String,
+        nombre: String,
+        correo: String,
+        contrasena: String
+    ): Usuario {
+        val cleanedUsername = nombreUsuario.trim()
+        val cleanedName = nombre.trim()
+        val cleanedEmail = correo.trim().lowercase()
+
+        var success = BackendClient.register(cleanedUsername, cleanedName, cleanedEmail, contrasena)
+        if (!success) {
+            success = BackendClient.login(cleanedEmail, contrasena)
+        }
+
+        if (!success) {
+            throw Exception("No se pudo registrar el usuario. Verifique los datos o si el correo ya existe.")
+        }
+
+        try {
+            database.clearAllTables()
+            syncDataFromBackend(cleanedUsername)
+        } catch (e: Exception) {
+            // Ignore or log
+        }
+
+        val fechaInicioSesion = Date()
+        val usuarioActualizado = UsuarioEntity(
+            nombreUsuario = cleanedUsername,
+            nombre = cleanedName,
+            correo = cleanedEmail,
+            ultimoInicioDeSesion = fechaInicioSesion,
+            contrasena = ""
+        )
+
+        usuarioDao.insertarUsuario(usuarioActualizado)
+        return usuarioActualizado.toDomain()
+    }
+
     private suspend fun syncDataFromBackend(username: String) {
         // Fetch all categories
         val categoriasRemote = BackendClient.getCategorias()
