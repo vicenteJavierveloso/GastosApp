@@ -28,6 +28,7 @@ import com.example.gastosapp.domain.usecase.EliminarIngresoUseCase
 import com.example.gastosapp.domain.usecase.EliminarMetaUseCase
 import com.example.gastosapp.domain.usecase.GastoUseCases
 import com.example.gastosapp.domain.usecase.IniciarSesionUseCase
+import com.example.gastosapp.domain.usecase.RegistrarUsuarioUseCase
 import com.example.gastosapp.domain.usecase.IngresoUseCases
 import com.example.gastosapp.domain.usecase.MetaUseCases
 import com.example.gastosapp.domain.usecase.ObtenerCategoriasUseCase
@@ -116,6 +117,7 @@ class MainActivity : ComponentActivity() {
             database = database
         )
         val iniciarSesionUseCase = IniciarSesionUseCase(authRepository)
+        val registrarUsuarioUseCase = RegistrarUsuarioUseCase(authRepository)
         val obtenerUsuarioActualUseCase = ObtenerUsuarioActualUseCase(authRepository)
         
         val gastosViewModelFactory = object : ViewModelProvider.Factory {
@@ -140,7 +142,7 @@ class MainActivity : ComponentActivity() {
         val authViewModelFactory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return AuthViewModel(iniciarSesionUseCase) as T
+                return AuthViewModel(iniciarSesionUseCase, registrarUsuarioUseCase) as T
             }
         }
         val categoriasViewModelFactory = object : ViewModelProvider.Factory {
