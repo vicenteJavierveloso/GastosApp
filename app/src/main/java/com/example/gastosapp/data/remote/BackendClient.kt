@@ -15,6 +15,8 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.util.Date
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object BackendClient {
     private const val BASE_URL = "http://127.0.0.1:8080/v1"
@@ -83,13 +85,13 @@ object BackendClient {
     data class GoalRequest(val monto: Int, val nombreCategoria: String, val fechaLimite: Long, val activa: Boolean)
 
     // Auth Calls
-    fun login(email: String, password: String): Boolean {
+    suspend fun login(email: String, password: String): Boolean = withContext(Dispatchers.IO) {
         val requestBody = gson.toJson(LoginRequest(contrasena = password, correo = email)).toRequestBody(JSON_MEDIA_TYPE)
         val request = Request.Builder()
             .url("$BASE_URL/auth/login")
             .post(requestBody)
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
@@ -106,13 +108,13 @@ object BackendClient {
         }
     }
 
-    fun register(username: String, name: String, email: String, password: String): Boolean {
+    suspend fun register(username: String, name: String, email: String, password: String): Boolean = withContext(Dispatchers.IO) {
         val requestBody = gson.toJson(RegisterRequest(username, name, email, password)).toRequestBody(JSON_MEDIA_TYPE)
         val request = Request.Builder()
             .url("$BASE_URL/auth/register")
             .post(requestBody)
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
@@ -130,13 +132,13 @@ object BackendClient {
     }
 
     // Category Sync
-    fun getCategorias(): List<Categoria> {
-        val authHeader = getAuthHeader() ?: return emptyList()
+    suspend fun getCategorias(): List<Categoria> = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext emptyList()
         val request = Request.Builder()
             .url("$BASE_URL/categorias")
             .addHeader("Authorization", authHeader)
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
@@ -158,29 +160,29 @@ object BackendClient {
         }
     }
 
-    fun insertCategoria(categoria: Categoria): Boolean {
-        val authHeader = getAuthHeader() ?: return false
+    suspend fun insertCategoria(categoria: Categoria): Boolean = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext false
         val requestBody = gson.toJson(CategoryDto(categoria.nombre, categoria.tipo.name, categoria.esDeMeta)).toRequestBody(JSON_MEDIA_TYPE)
         val request = Request.Builder()
             .url("$BASE_URL/categorias")
             .addHeader("Authorization", authHeader)
             .post(requestBody)
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { it.isSuccessful }
         } catch (e: Exception) {
             false
         }
     }
 
-    fun deleteCategoria(nombre: String, tipo: String): Boolean {
-        val authHeader = getAuthHeader() ?: return false
+    suspend fun deleteCategoria(nombre: String, tipo: String): Boolean = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext false
         val request = Request.Builder()
             .url("$BASE_URL/categorias/$nombre/$tipo")
             .addHeader("Authorization", authHeader)
             .delete()
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { it.isSuccessful }
         } catch (e: Exception) {
             false
@@ -188,13 +190,13 @@ object BackendClient {
     }
 
     // Expense Sync
-    fun getGastos(): List<Gasto> {
-        val authHeader = getAuthHeader() ?: return emptyList()
+    suspend fun getGastos(): List<Gasto> = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext emptyList()
         val request = Request.Builder()
             .url("$BASE_URL/gastos")
             .addHeader("Authorization", authHeader)
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
@@ -208,8 +210,8 @@ object BackendClient {
         }
     }
 
-    fun insertGasto(gasto: Gasto): Int? {
-        val authHeader = getAuthHeader() ?: return null
+    suspend fun insertGasto(gasto: Gasto): Int? = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext null
         val payload = ExpenseRequest(gasto.monto, gasto.detalle, gasto.nombreCategoria, gasto.fecha.time)
         val requestBody = gson.toJson(payload).toRequestBody(JSON_MEDIA_TYPE)
         val request = Request.Builder()
@@ -217,7 +219,7 @@ object BackendClient {
             .addHeader("Authorization", authHeader)
             .post(requestBody)
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
@@ -230,14 +232,14 @@ object BackendClient {
         }
     }
 
-    fun deleteGasto(codigoGasto: Int): Boolean {
-        val authHeader = getAuthHeader() ?: return false
+    suspend fun deleteGasto(codigoGasto: Int): Boolean = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext false
         val request = Request.Builder()
             .url("$BASE_URL/gastos/$codigoGasto")
             .addHeader("Authorization", authHeader)
             .delete()
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { it.isSuccessful }
         } catch (e: Exception) {
             false
@@ -245,13 +247,13 @@ object BackendClient {
     }
 
     // Income Sync
-    fun getIngresos(): List<Ingreso> {
-        val authHeader = getAuthHeader() ?: return emptyList()
+    suspend fun getIngresos(): List<Ingreso> = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext emptyList()
         val request = Request.Builder()
             .url("$BASE_URL/ingresos")
             .addHeader("Authorization", authHeader)
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
@@ -265,8 +267,8 @@ object BackendClient {
         }
     }
 
-    fun insertIngreso(ingreso: Ingreso): Int? {
-        val authHeader = getAuthHeader() ?: return null
+    suspend fun insertIngreso(ingreso: Ingreso): Int? = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext null
         val payload = IncomeRequest(ingreso.monto, ingreso.detalle, ingreso.nombreCategoria, ingreso.fecha.time)
         val requestBody = gson.toJson(payload).toRequestBody(JSON_MEDIA_TYPE)
         val request = Request.Builder()
@@ -274,7 +276,7 @@ object BackendClient {
             .addHeader("Authorization", authHeader)
             .post(requestBody)
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
@@ -287,14 +289,14 @@ object BackendClient {
         }
     }
 
-    fun deleteIngreso(codigoIngreso: Int): Boolean {
-        val authHeader = getAuthHeader() ?: return false
+    suspend fun deleteIngreso(codigoIngreso: Int): Boolean = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext false
         val request = Request.Builder()
             .url("$BASE_URL/ingresos/$codigoIngreso")
             .addHeader("Authorization", authHeader)
             .delete()
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { it.isSuccessful }
         } catch (e: Exception) {
             false
@@ -302,13 +304,13 @@ object BackendClient {
     }
 
     // Goal Sync
-    fun getMetas(): List<Meta> {
-        val authHeader = getAuthHeader() ?: return emptyList()
+    suspend fun getMetas(): List<Meta> = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext emptyList()
         val request = Request.Builder()
             .url("$BASE_URL/metas")
             .addHeader("Authorization", authHeader)
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
@@ -322,8 +324,8 @@ object BackendClient {
         }
     }
 
-    fun insertMeta(meta: Meta): Int? {
-        val authHeader = getAuthHeader() ?: return null
+    suspend fun insertMeta(meta: Meta): Int? = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext null
         val payload = GoalRequest(meta.monto, meta.nombreCategoria, meta.fechaLimite.time, meta.activa)
         val requestBody = gson.toJson(payload).toRequestBody(JSON_MEDIA_TYPE)
         val request = Request.Builder()
@@ -331,7 +333,7 @@ object BackendClient {
             .addHeader("Authorization", authHeader)
             .post(requestBody)
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
@@ -344,8 +346,8 @@ object BackendClient {
         }
     }
 
-    fun updateMeta(meta: Meta): Boolean {
-        val authHeader = getAuthHeader() ?: return false
+    suspend fun updateMeta(meta: Meta): Boolean = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext false
         val payload = GoalRequest(meta.monto, meta.nombreCategoria, meta.fechaLimite.time, meta.activa)
         val requestBody = gson.toJson(payload).toRequestBody(JSON_MEDIA_TYPE)
         val request = Request.Builder()
@@ -353,21 +355,21 @@ object BackendClient {
             .addHeader("Authorization", authHeader)
             .put(requestBody)
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { it.isSuccessful }
         } catch (e: Exception) {
             false
         }
     }
 
-    fun deleteMeta(codigoMeta: Int): Boolean {
-        val authHeader = getAuthHeader() ?: return false
+    suspend fun deleteMeta(codigoMeta: Int): Boolean = withContext(Dispatchers.IO) {
+        val authHeader = getAuthHeader() ?: return@withContext false
         val request = Request.Builder()
             .url("$BASE_URL/metas/$codigoMeta")
             .addHeader("Authorization", authHeader)
             .delete()
             .build()
-        return try {
+        try {
             client.newCall(request).execute().use { it.isSuccessful }
         } catch (e: Exception) {
             false
