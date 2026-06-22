@@ -4,14 +4,16 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "categorias")
+@Entity(tableName = "categorias", primaryKeys = ["nombre", "tipo"])
 data class Categoria(
-    @PrimaryKey
     @ColumnInfo(name = "nombre")
     val nombre: String,
 
     @ColumnInfo(name = "tipo")
-    val tipo: String
+    val tipo: String,
+
+    @ColumnInfo(name = "esDeMeta")
+    val esDeMeta: Boolean = false
 ) {
     init {
         require(nombre.length <= 30) {

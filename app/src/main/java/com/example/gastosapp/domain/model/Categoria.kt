@@ -7,5 +7,6 @@ enum class TipoCategoria {
 
 data class Categoria(
     val nombre: String,
-    val tipo: TipoCategoria
+    val tipo: TipoCategoria,
+    val esDeMeta: Boolean = false
 )

@@ -34,14 +34,16 @@ class CategoriaRepositoryImpl(
     private fun CategoriaEntity.toDomain(): Categoria {
         return Categoria(
             nombre = nombre,
-            tipo = try { TipoCategoria.valueOf(tipo) } catch (e: Exception) { TipoCategoria.GASTO }
+            tipo = try { TipoCategoria.valueOf(tipo) } catch (e: Exception) { TipoCategoria.GASTO },
+            esDeMeta = esDeMeta
         )
     }
 
     private fun Categoria.toEntity(): CategoriaEntity {
         return CategoriaEntity(
             nombre = nombre,
-            tipo = tipo.name
+            tipo = tipo.name,
+            esDeMeta = esDeMeta
         )
     }
 }

@@ -10,10 +10,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CategoriaDao {
-    @Query("SELECT * FROM categorias ORDER BY nombre ASC")
+    @Query("SELECT * FROM categorias WHERE esDeMeta = 0 ORDER BY nombre ASC")
     fun obtenerCategorias(): Flow<List<Categoria>>
 
-    @Query("SELECT * FROM categorias WHERE tipo = :tipo ORDER BY nombre ASC")
+    @Query("SELECT * FROM categorias WHERE tipo = :tipo AND esDeMeta = 0 ORDER BY nombre ASC")
     fun obtenerCategoriasPorTipo(tipo: String): Flow<List<Categoria>>
 
     @Query("SELECT * FROM categorias WHERE nombre = :nombre LIMIT 1")

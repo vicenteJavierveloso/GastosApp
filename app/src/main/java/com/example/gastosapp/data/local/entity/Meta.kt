@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.Date
 
 @Entity(
     tableName = "metas",
@@ -30,11 +31,20 @@ data class Meta(
     val monto: Int,
 
     @ColumnInfo(name = "nombredeusuario")
-    val nombreDeUsuario: String
+    val nombreDeUsuario: String,
+
+    @ColumnInfo(name = "nombrecategoria")
+    val nombreCategoria: String,
+
+    @ColumnInfo(name = "fechalimite")
+    val fechaLimite: Date
 ) {
     init {
         require(nombreDeUsuario.length <= 30) {
             "nombredeusuario no puede superar 30 caracteres"
+        }
+        require(nombreCategoria.length <= 30) {
+            "nombrecategoria no puede superar 30 caracteres"
         }
     }
 }

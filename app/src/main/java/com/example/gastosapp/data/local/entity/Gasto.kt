@@ -16,13 +16,6 @@ import java.util.Date
             childColumns = ["nombredeusuario"],
             onUpdate = ForeignKey.CASCADE,
             onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Categoria::class,
-            parentColumns = ["nombre"],
-            childColumns = ["nombrecategoria"],
-            onUpdate = ForeignKey.CASCADE,
-            onDelete = ForeignKey.RESTRICT
         )
     ],
     indices = [
