@@ -2,14 +2,12 @@ package com.example.gastosapp.data.repository
 
 import com.example.gastosapp.data.local.database.GastosDatabase
 import com.example.gastosapp.data.remote.BackendClient
-import com.example.gastosapp.data.remote.auth.AuthRemoteDataSource
 import com.example.gastosapp.domain.model.Usuario
 import com.example.gastosapp.domain.repository.AuthRepository
 import java.util.Date
 import com.example.gastosapp.data.local.entity.Usuario as UsuarioEntity
 
 class AuthRepositoryImpl(
-    private val authRemoteDataSource: AuthRemoteDataSource,
     private val database: GastosDatabase
 ) : AuthRepository {
     private val usuarioDao = database.usuarioDao()
@@ -19,31 +17,31 @@ class AuthRepositoryImpl(
     private val metaDao = database.metaDao()
 
     override suspend fun iniciarSesion(correo: String, contrasena: String): Usuario {
-        val firebaseUser = authRemoteDataSource.iniciarSesion(correo, contrasena)
-        val usuarioLocal = usuarioDao.obtenerUsuarioPorCorreo(firebaseUser.correo)
-        val username = usuarioLocal?.nombreUsuario ?: generarNombreUsuario(firebaseUser.correo)
-
         // Sync with Ktor Backend
         var syncSuccess = BackendClient.login(correo, contrasena)
+        val username = BackendClient.getNombreUsuario() ?: generarNombreUsuario(correo)
+
         if (!syncSuccess) {
-            val name = firebaseUser.nombre ?: (usuarioLocal?.nombre ?: generarNombreDesdeCorreo(firebaseUser.correo))
+            val name = generarNombreDesdeCorreo(correo)
             syncSuccess = BackendClient.register(username, name, correo, contrasena)
         }
 
-        if (syncSuccess) {
-            try {
-                database.clearAllTables()
-                syncDataFromBackend(username)
-            } catch (e: Exception) {
-                // Ignore or log
-            }
+        if (!syncSuccess) {
+            throw Exception("Credenciales incorrectas o error en el servidor.")
+        }
+
+        try {
+            database.clearAllTables()
+            syncDataFromBackend(username)
+        } catch (e: Exception) {
+            // Ignore or log
         }
 
         val fechaInicioSesion = Date()
         val usuarioActualizado = UsuarioEntity(
             nombreUsuario = username,
-            nombre = firebaseUser.nombre ?: (usuarioLocal?.nombre ?: generarNombreDesdeCorreo(firebaseUser.correo)),
-            correo = firebaseUser.correo,
+            nombre = generarNombreDesdeCorreo(correo),
+            correo = correo,
             ultimoInicioDeSesion = fechaInicioSesion,
             contrasena = ""
         )
@@ -53,24 +51,27 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun obtenerUsuarioActual(): Usuario? {
-        val firebaseUser = authRemoteDataSource.obtenerUsuarioActual() ?: return null
-        val usuarioLocal = usuarioDao.obtenerUsuarioPorCorreo(firebaseUser.correo)
-        val username = usuarioLocal?.nombreUsuario ?: generarNombreUsuario(firebaseUser.correo)
+        if (!BackendClient.hasToken()) {
+            return null
+        }
 
-        if (BackendClient.hasToken()) {
-            try {
-                database.clearAllTables()
-                syncDataFromBackend(username)
-            } catch (e: Exception) {
-                // Ignore or log
-            }
+        val username = BackendClient.getNombreUsuario() ?: return null
+        val usuarioLocal = usuarioDao.obtenerUsuarioPorNombreUsuario(username)
+        val email = usuarioLocal?.correo ?: ""
+        val name = usuarioLocal?.nombre ?: generarNombreDesdeCorreo(email)
+
+        try {
+            database.clearAllTables()
+            syncDataFromBackend(username)
+        } catch (e: Exception) {
+            // Ignore or log
         }
 
         val fechaInicioSesion = Date()
         val usuarioActualizado = UsuarioEntity(
             nombreUsuario = username,
-            nombre = firebaseUser.nombre ?: (usuarioLocal?.nombre ?: generarNombreDesdeCorreo(firebaseUser.correo)),
-            correo = firebaseUser.correo,
+            nombre = name,
+            correo = email,
             ultimoInicioDeSesion = fechaInicioSesion,
             contrasena = ""
         )

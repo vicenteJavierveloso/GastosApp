@@ -11,7 +11,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import com.example.gastosapp.data.local.database.GastosDatabase
-import com.example.gastosapp.data.remote.auth.FirebaseAuthRemoteDataSource
 import com.example.gastosapp.data.repository.AuthRepositoryImpl
 import com.example.gastosapp.data.repository.CategoriaRepositoryImpl
 import com.example.gastosapp.data.repository.GastoRepositoryImpl
@@ -52,7 +51,6 @@ import com.example.gastosapp.presentation.VerIngresosScreen
 import com.example.gastosapp.presentation.auth.AuthViewModel
 import com.example.gastosapp.presentation.auth.LoginScreen
 import com.example.gastosapp.ui.theme.GastosAppTheme
-import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -115,7 +113,6 @@ class MainActivity : ComponentActivity() {
         )
 
         val authRepository = AuthRepositoryImpl(
-            authRemoteDataSource = FirebaseAuthRemoteDataSource(FirebaseAuth.getInstance()),
             database = database
         )
         val iniciarSesionUseCase = IniciarSesionUseCase(authRepository)
