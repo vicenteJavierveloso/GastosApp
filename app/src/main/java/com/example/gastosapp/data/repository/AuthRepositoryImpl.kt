@@ -40,8 +40,8 @@ class AuthRepositoryImpl(
         val fechaInicioSesion = Date()
         val usuarioActualizado = UsuarioEntity(
             nombreUsuario = username,
-            nombre = generarNombreDesdeCorreo(correo),
-            correo = correo,
+            nombre = BackendClient.getNombreRealUsuario() ?: generarNombreDesdeCorreo(correo),
+            correo = BackendClient.getCorreoUsuario() ?: correo,
             ultimoInicioDeSesion = fechaInicioSesion,
             contrasena = ""
         )
@@ -57,8 +57,8 @@ class AuthRepositoryImpl(
 
         val username = BackendClient.getNombreUsuario() ?: return null
         val usuarioLocal = usuarioDao.obtenerUsuarioPorNombreUsuario(username)
-        val email = usuarioLocal?.correo ?: ""
-        val name = usuarioLocal?.nombre ?: generarNombreDesdeCorreo(email)
+        val email = usuarioLocal?.correo ?: (BackendClient.getCorreoUsuario() ?: "")
+        val name = usuarioLocal?.nombre ?: (BackendClient.getNombreRealUsuario() ?: generarNombreDesdeCorreo(email))
 
         try {
             database.clearAllTables()

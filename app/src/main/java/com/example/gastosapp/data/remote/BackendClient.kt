@@ -24,28 +24,40 @@ object BackendClient {
 
     private var jwtToken: String? = null
     private var nombreUsuario: String? = null
+    private var correoUsuario: String? = null
+    private var nombreRealUsuario: String? = null
     private lateinit var prefs: SharedPreferences
 
     fun init(context: Context) {
         prefs = context.getSharedPreferences("gastosapp_prefs", Context.MODE_PRIVATE)
         jwtToken = prefs.getString("jwt_token", null)
         nombreUsuario = prefs.getString("nombre_usuario", null)
+        correoUsuario = prefs.getString("correo_usuario", null)
+        nombreRealUsuario = prefs.getString("nombre_real_usuario", null)
     }
 
-    fun saveAuth(token: String, username: String) {
+    fun saveAuth(token: String, username: String, email: String, name: String) {
         jwtToken = token
         nombreUsuario = username
+        correoUsuario = email
+        nombreRealUsuario = name
         prefs.edit()
             .putString("jwt_token", token)
             .putString("nombre_usuario", username)
+            .putString("correo_usuario", email)
+            .putString("nombre_real_usuario", name)
             .apply()
     }
 
     fun getNombreUsuario(): String? = nombreUsuario
+    fun getCorreoUsuario(): String? = correoUsuario
+    fun getNombreRealUsuario(): String? = nombreRealUsuario
 
     fun clearAuth() {
         jwtToken = null
         nombreUsuario = null
+        correoUsuario = null
+        nombreRealUsuario = null
         prefs.edit().clear().apply()
     }
 
@@ -82,7 +94,7 @@ object BackendClient {
                 if (response.isSuccessful) {
                     val body = response.body?.string()
                     val loginRes = gson.fromJson(body, LoginResponse::class.java)
-                    saveAuth(loginRes.token, loginRes.usuario.nombreUsuario)
+                    saveAuth(loginRes.token, loginRes.usuario.nombreUsuario, loginRes.usuario.correo, loginRes.usuario.nombre)
                     true
                 } else {
                     false
@@ -105,7 +117,7 @@ object BackendClient {
                 if (response.isSuccessful) {
                     val body = response.body?.string()
                     val loginRes = gson.fromJson(body, LoginResponse::class.java)
-                    saveAuth(loginRes.token, loginRes.usuario.nombreUsuario)
+                    saveAuth(loginRes.token, loginRes.usuario.nombreUsuario, loginRes.usuario.correo, loginRes.usuario.nombre)
                     true
                 } else {
                     false
