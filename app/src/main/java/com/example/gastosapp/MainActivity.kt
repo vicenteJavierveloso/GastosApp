@@ -16,20 +16,25 @@ import com.example.gastosapp.data.repository.AuthRepositoryImpl
 import com.example.gastosapp.data.repository.CategoriaRepositoryImpl
 import com.example.gastosapp.data.repository.GastoRepositoryImpl
 import com.example.gastosapp.data.repository.IngresoRepositoryImpl
+import com.example.gastosapp.data.repository.MetaRepositoryImpl
 import com.example.gastosapp.domain.usecase.AgregarCategoriaUseCase
 import com.example.gastosapp.domain.usecase.AgregarGastoUseCase
 import com.example.gastosapp.domain.usecase.AgregarIngresoUseCase
+import com.example.gastosapp.domain.usecase.AgregarMetaUseCase
 import com.example.gastosapp.domain.usecase.CategoriaUseCases
 import com.example.gastosapp.domain.usecase.EliminarCategoriaUseCase
 import com.example.gastosapp.domain.usecase.EliminarGastoUseCase
 import com.example.gastosapp.domain.usecase.EliminarIngresoUseCase
+import com.example.gastosapp.domain.usecase.EliminarMetaUseCase
 import com.example.gastosapp.domain.usecase.GastoUseCases
 import com.example.gastosapp.domain.usecase.IniciarSesionUseCase
 import com.example.gastosapp.domain.usecase.IngresoUseCases
+import com.example.gastosapp.domain.usecase.MetaUseCases
 import com.example.gastosapp.domain.usecase.ObtenerCategoriasUseCase
 import com.example.gastosapp.domain.usecase.ObtenerCategoriasPorTipoUseCase
 import com.example.gastosapp.domain.usecase.ObtenerGastosUseCase
 import com.example.gastosapp.domain.usecase.ObtenerIngresosUseCase
+import com.example.gastosapp.domain.usecase.ObtenerMetasUseCase
 import com.example.gastosapp.domain.usecase.ObtenerUsuarioActualUseCase
 import com.example.gastosapp.presentation.CategoriasScreen
 import com.example.gastosapp.presentation.CategoriasViewModel
@@ -39,6 +44,8 @@ import com.example.gastosapp.presentation.HomeScreen
 import com.example.gastosapp.presentation.HomeViewModel
 import com.example.gastosapp.presentation.IngresosScreen
 import com.example.gastosapp.presentation.IngresosViewModel
+import com.example.gastosapp.presentation.MetasScreen
+import com.example.gastosapp.presentation.MetasViewModel
 import com.example.gastosapp.presentation.auth.AuthViewModel
 import com.example.gastosapp.presentation.auth.LoginScreen
 import com.example.gastosapp.ui.theme.GastosAppTheme
@@ -57,7 +64,7 @@ class MainActivity : ComponentActivity() {
             GastosDatabase.MIGRATION_3_4,
             GastosDatabase.MIGRATION_4_5
         )
-            .fallbackToDestructiveMigration(false)
+            .fallbackToDestructiveMigration(true)
             .build()
 
         val repository = GastoRepositoryImpl(
@@ -71,6 +78,11 @@ class MainActivity : ComponentActivity() {
             usuarioDao = database.usuarioDao()
         )
         val categoriaRepository = CategoriaRepositoryImpl(
+            categoriaDao = database.categoriaDao()
+        )
+        val metaRepository = MetaRepositoryImpl(
+            metaDao = database.metaDao(),
+            usuarioDao = database.usuarioDao(),
             categoriaDao = database.categoriaDao()
         )
 
@@ -89,6 +101,11 @@ class MainActivity : ComponentActivity() {
             obtenerCategoriasPorTipo = ObtenerCategoriasPorTipoUseCase(categoriaRepository),
             agregarCategoria = AgregarCategoriaUseCase(categoriaRepository),
             eliminarCategoria = EliminarCategoriaUseCase(categoriaRepository)
+        )
+        val metaUseCases = MetaUseCases(
+            obtenerMetas = ObtenerMetasUseCase(metaRepository),
+            agregarMeta = AgregarMetaUseCase(metaRepository),
+            eliminarMeta = EliminarMetaUseCase(metaRepository)
         )
 
         val authRepository = AuthRepositoryImpl(
@@ -139,6 +156,19 @@ class MainActivity : ComponentActivity() {
                 ) as T
             }
         }
+        val metasViewModelFactory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return MetasViewModel(
+                    metaUseCases = metaUseCases,
+                    obtenerIngresosUseCase = ingresoUseCases.obtenerIngresos,
+                    obtenerGastosUseCase = useCases.obtenerGastos,
+                    agregarIngresoUseCase = ingresoUseCases.agregarIngreso,
+                    agregarGastoUseCase = useCases.agregarGasto,
+                    obtenerUsuarioActualUseCase = obtenerUsuarioActualUseCase
+                ) as T
+            }
+        }
         
         val gastosViewModel = ViewModelProvider(
             this,
@@ -160,6 +190,10 @@ class MainActivity : ComponentActivity() {
             this,
             ingresosViewModelFactory
         )[IngresosViewModel::class.java]
+        val metasViewModel = ViewModelProvider(
+            this,
+            metasViewModelFactory
+        )[MetasViewModel::class.java]
 
         enableEdgeToEdge()
         setContent {
@@ -193,6 +227,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToCategorias = {
                                 navController.navigate("categorias")
+                            },
+                            onNavigateToMetas = {
+                                navController.navigate("metas")
                             }
                         )
                     }
@@ -211,6 +248,12 @@ class MainActivity : ComponentActivity() {
                     composable("categorias") {
                         CategoriasScreen(
                             viewModel = categoriasViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable("metas") {
+                        MetasScreen(
+                            viewModel = metasViewModel,
                             onBack = { navController.popBackStack() }
                         )
                     }
