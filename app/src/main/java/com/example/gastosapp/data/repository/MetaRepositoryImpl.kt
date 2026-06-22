@@ -24,6 +24,20 @@ class MetaRepositoryImpl(
     }
 
     override suspend fun insertarMeta(meta: Meta) {
+        // Sync categories and goal to backend first
+        com.example.gastosapp.data.remote.BackendClient.insertCategoria(
+            com.example.gastosapp.domain.model.Categoria(nombre = meta.nombreCategoria, tipo = com.example.gastosapp.domain.model.TipoCategoria.GASTO, esDeMeta = true)
+        )
+        com.example.gastosapp.data.remote.BackendClient.insertCategoria(
+            com.example.gastosapp.domain.model.Categoria(nombre = meta.nombreCategoria, tipo = com.example.gastosapp.domain.model.TipoCategoria.INGRESO, esDeMeta = true)
+        )
+        val serverId = com.example.gastosapp.data.remote.BackendClient.insertMeta(meta)
+        val finalMeta = if (serverId != null) {
+            meta.copy(codigoMeta = serverId)
+        } else {
+            meta
+        }
+
         if (usuarioDao.obtenerUsuarioPorNombreUsuario(meta.nombreDeUsuario) == null) {
             usuarioDao.insertarUsuario(
                 Usuario(
@@ -40,10 +54,14 @@ class MetaRepositoryImpl(
         categoriaDao.insertarCategoria(Categoria(nombre = meta.nombreCategoria, tipo = "GASTO", esDeMeta = true))
         categoriaDao.insertarCategoria(Categoria(nombre = meta.nombreCategoria, tipo = "INGRESO", esDeMeta = true))
         
-        metaDao.insertarMeta(meta.toEntity())
+        metaDao.insertarMeta(finalMeta.toEntity())
     }
 
     override suspend fun eliminarMeta(meta: Meta) {
+        com.example.gastosapp.data.remote.BackendClient.deleteMeta(meta.codigoMeta)
+        com.example.gastosapp.data.remote.BackendClient.deleteCategoria(meta.nombreCategoria, "GASTO")
+        com.example.gastosapp.data.remote.BackendClient.deleteCategoria(meta.nombreCategoria, "INGRESO")
+
         metaDao.eliminarMeta(meta.toEntity())
         
         // Eliminar las categorías de la meta
@@ -52,6 +70,7 @@ class MetaRepositoryImpl(
     }
 
     override suspend fun actualizarMeta(meta: Meta) {
+        com.example.gastosapp.data.remote.BackendClient.updateMeta(meta)
         metaDao.actualizarMeta(meta.toEntity())
     }
 
