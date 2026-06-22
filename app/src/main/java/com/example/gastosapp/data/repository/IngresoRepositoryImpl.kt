@@ -24,6 +24,15 @@ class IngresoRepositoryImpl(
     }
 
     override suspend fun insertarIngreso(ingreso: Ingreso) {
+        // Sync to backend first
+        com.example.gastosapp.data.remote.BackendClient.insertCategoria(Categoria(nombre = ingreso.nombreCategoria, tipo = "INGRESO"))
+        val serverId = com.example.gastosapp.data.remote.BackendClient.insertIngreso(ingreso)
+        val finalIngreso = if (serverId != null) {
+            ingreso.copy(codigoIngreso = serverId)
+        } else {
+            ingreso
+        }
+
         categoriaDao.insertarCategoria(Categoria(nombre = ingreso.nombreCategoria, tipo = "INGRESO"))
         if (usuarioDao.obtenerUsuarioPorNombreUsuario(ingreso.nombreDeUsuario) == null) {
             usuarioDao.insertarUsuario(
@@ -36,10 +45,11 @@ class IngresoRepositoryImpl(
                 )
             )
         }
-        ingresoDao.insertarIngreso(ingreso.toEntity())
+        ingresoDao.insertarIngreso(finalIngreso.toEntity())
     }
 
     override suspend fun eliminarIngreso(ingreso: Ingreso) {
+        com.example.gastosapp.data.remote.BackendClient.deleteIngreso(ingreso.codigoIngreso)
         ingresoDao.eliminarIngreso(ingreso.toEntity())
     }
 

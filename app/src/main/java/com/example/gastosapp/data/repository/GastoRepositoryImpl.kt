@@ -24,6 +24,20 @@ class GastoRepositoryImpl(
     }
 
     override suspend fun insertarGasto(gasto: Gasto) {
+        // Sync to backend first
+        com.example.gastosapp.data.remote.BackendClient.insertCategoria(
+            com.example.gastosapp.domain.model.Categoria(
+                nombre = gasto.nombreCategoria,
+                tipo = com.example.gastosapp.domain.model.TipoCategoria.GASTO
+            )
+        )
+        val serverId = com.example.gastosapp.data.remote.BackendClient.insertGasto(gasto)
+        val finalGasto = if (serverId != null) {
+            gasto.copy(codigoGasto = serverId)
+        } else {
+            gasto
+        }
+
         categoriaDao.insertarCategoria(Categoria(nombre = gasto.nombreCategoria, tipo = "GASTO"))
         if (usuarioDao.obtenerUsuarioPorNombreUsuario(gasto.nombreDeUsuario) == null) {
             usuarioDao.insertarUsuario(
@@ -36,10 +50,11 @@ class GastoRepositoryImpl(
                 )
             )
         }
-        gastoDao.insertarGasto(gasto.toEntity())
+        gastoDao.insertarGasto(finalGasto.toEntity())
     }
 
     override suspend fun eliminarGasto(gasto: Gasto) {
+        com.example.gastosapp.data.remote.BackendClient.deleteGasto(gasto.codigoGasto)
         gastoDao.eliminarGasto(gasto.toEntity())
     }
 
