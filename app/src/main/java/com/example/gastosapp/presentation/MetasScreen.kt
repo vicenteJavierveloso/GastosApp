@@ -203,29 +203,22 @@ fun MetasScreen(
     }
 
     if (showRetirarDialogFor != null) {
+        val progress = state.metasProgress.find { it.meta.codigoMeta == showRetirarDialogFor!!.codigoMeta }
+        val montoActual = progress?.montoActual ?: 0
         AlertDialog(
             onDismissRequest = { showRetirarDialogFor = null },
-            title = { Text("Retirar de: ${showRetirarDialogFor!!.nombreCategoria}") },
+            title = { Text("Retiro de Ahorros") },
             text = {
-                Column {
-                    Text("Ingrese el monto a retirar:")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    TextField(
-                        value = dialogAmount,
-                        onValueChange = { dialogAmount = it },
-                        label = { Text("Monto") }
-                    )
-                }
+                Text("¿Está seguro de que desea retirar la totalidad del ahorro acumulado ($${montoActual}) para la meta '${showRetirarDialogFor!!.nombreCategoria}'?")
             },
             confirmButton = {
                 Button(
                     onClick = {
-                        val amount = dialogAmount.toIntOrNull() ?: 0
-                        viewModel.onEvent(MetasEvent.RetirarFondos(showRetirarDialogFor!!, amount))
+                        viewModel.onEvent(MetasEvent.RetirarFondos(showRetirarDialogFor!!))
                         showRetirarDialogFor = null
                     }
                 ) {
-                    Text("Retirar")
+                    Text("Retirar Todo")
                 }
             },
             dismissButton = {

@@ -18,7 +18,6 @@ sealed class MetasEvent {
     ) : MetasEvent()
 
     data class RetirarFondos(
-        val meta: Meta,
-        val monto: Int
+        val meta: Meta
     ) : MetasEvent()
 }

@@ -51,7 +51,7 @@ class MetasViewModel(
                 aportarFondos(event.meta, event.monto)
             }
             is MetasEvent.RetirarFondos -> {
-                retirarFondos(event.meta, event.monto)
+                retirarFondos(event.meta)
             }
         }
     }
@@ -158,13 +158,9 @@ class MetasViewModel(
         }
     }
 
-    private fun retirarFondos(meta: Meta, monto: Int) {
+    private fun retirarFondos(meta: Meta) {
         viewModelScope.launch {
             try {
-                if (monto <= 0) {
-                    throw Exception("El monto a retirar debe ser mayor a cero.")
-                }
-
                 // Calcular el progreso actual
                 val progress = state.value.metasProgress.find { it.meta.codigoMeta == meta.codigoMeta }
                 val montoActual = progress?.montoActual ?: 0
@@ -173,13 +169,13 @@ class MetasViewModel(
                 if (montoActual < meta.monto) {
                     throw Exception("No se puede retirar fondos: la meta de ahorro de $${meta.monto} aún no ha sido alcanzada (ahorro actual: $${montoActual}).")
                 }
-                if (monto > montoActual) {
-                    throw Exception("No puede retirar más del monto actual acumulado ($${montoActual}).")
+                if (montoActual <= 0) {
+                    throw Exception("No hay fondos acumulados para retirar.")
                 }
 
                 val gasto = Gasto(
-                    monto = monto,
-                    detalle = "Retiro de meta: ${meta.nombreCategoria}",
+                    monto = montoActual,
+                    detalle = "Retiro total de meta: ${meta.nombreCategoria}",
                     nombreDeUsuario = meta.nombreDeUsuario,
                     nombreCategoria = meta.nombreCategoria,
                     fecha = Date()
