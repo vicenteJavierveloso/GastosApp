@@ -36,7 +36,8 @@ class GastosViewModel(
                 agregarGasto(
                     detalle = event.detalle,
                     monto = event.monto,
-                    nombreCategoria = event.nombreCategoria
+                    nombreCategoria = event.nombreCategoria,
+                    fecha = event.fecha
                 )
             }
             is GastosEvent.EliminarGasto -> {
@@ -81,7 +82,8 @@ class GastosViewModel(
     private fun agregarGasto(
         detalle: String,
         monto: Int,
-        nombreCategoria: String
+        nombreCategoria: String,
+        fecha: Date
     ) {
         viewModelScope.launch {
             try {
@@ -94,7 +96,7 @@ class GastosViewModel(
                     detalle = detalle,
                     nombreDeUsuario = username,
                     nombreCategoria = nombreCategoria,
-                    fecha = Date()
+                    fecha = fecha
                 )
                 gastoUseCases.agregarGasto(gasto)
                 _state.value = _state.value.copy(error = null)

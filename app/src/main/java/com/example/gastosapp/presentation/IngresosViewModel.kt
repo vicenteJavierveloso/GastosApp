@@ -36,7 +36,8 @@ class IngresosViewModel(
                 agregarIngreso(
                     detalle = event.detalle,
                     monto = event.monto,
-                    nombreCategoria = event.nombreCategoria
+                    nombreCategoria = event.nombreCategoria,
+                    fecha = event.fecha
                 )
             }
             is IngresosEvent.EliminarIngreso -> {
@@ -81,7 +82,8 @@ class IngresosViewModel(
     private fun agregarIngreso(
         detalle: String,
         monto: Int,
-        nombreCategoria: String
+        nombreCategoria: String,
+        fecha: Date
     ) {
         viewModelScope.launch {
             try {
@@ -94,7 +96,7 @@ class IngresosViewModel(
                     detalle = detalle,
                     nombreDeUsuario = username,
                     nombreCategoria = nombreCategoria,
-                    fecha = Date()
+                    fecha = fecha
                 )
                 ingresoUseCases.agregarIngreso(ingreso)
                 _state.value = _state.value.copy(error = null)
