@@ -24,10 +24,12 @@ class CategoriaRepositoryImpl(
     }
 
     override suspend fun insertarCategoria(categoria: Categoria) {
+        com.example.gastosapp.data.remote.BackendClient.insertCategoria(categoria)
         categoriaDao.insertarCategoria(categoria.toEntity())
     }
 
     override suspend fun eliminarCategoria(categoria: Categoria) {
+        com.example.gastosapp.data.remote.BackendClient.deleteCategoria(categoria.nombre, categoria.tipo.name)
         categoriaDao.eliminarCategoria(categoria.toEntity())
     }
 
