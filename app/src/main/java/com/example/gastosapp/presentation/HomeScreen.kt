@@ -21,7 +21,8 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToGastos: () -> Unit,
     onNavigateToIngresos: () -> Unit,
-    onNavigateToCategorias: () -> Unit
+    onNavigateToCategorias: () -> Unit,
+    onNavigateToMetas: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL")) }
@@ -106,6 +107,13 @@ fun HomeScreen(
                 symbol = "#",
                 accentColor = Color(0xFF3B6EA8),
                 onClick = onNavigateToCategorias
+            )
+            ManagementOption(
+                title = "Metas de Ahorro",
+                subtitle = "Establecer y gestionar objetivos",
+                symbol = "$",
+                accentColor = Color(0xFFEAB308),
+                onClick = onNavigateToMetas
             )
         }
     }
