@@ -3,10 +3,10 @@ package com.example.gastosapp.data.remote
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.domain.model.Categoria
-import com.example.domain.model.Gasto
-import com.example.domain.model.Ingreso
-import com.example.domain.model.Meta
+import com.example.gastosapp.domain.model.Categoria
+import com.example.gastosapp.domain.model.Gasto
+import com.example.gastosapp.domain.model.Ingreso
+import com.example.gastosapp.domain.model.Meta
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import okhttp3.MediaType.Companion.toMediaType
@@ -56,7 +56,7 @@ object BackendClient {
     }
 
     // DTO structures to parse/send
-    data class LoginRequest(val nombreUsuario: String, val correo: String, val contrasena: String)
+    data class LoginRequest(val contrasena: String, val nombreUsuario: String? = null, val correo: String? = null)
     data class RegisterRequest(val nombreUsuario: String, val nombre: String, val correo: String, val contrasena: String)
     data class LoginResponse(val token: String, val usuario: UserDto)
     data class UserDto(val nombreUsuario: String, val nombre: String, val correo: String)
@@ -71,8 +71,8 @@ object BackendClient {
     data class GoalRequest(val monto: Int, val nombreCategoria: String, val fechaLimite: Long, val activa: Boolean)
 
     // Auth Calls
-    fun login(username: String, email: String, password: String): Boolean {
-        val requestBody = gson.toJson(LoginRequest(username, email, password)).toRequestBody(JSON_MEDIA_TYPE)
+    fun login(email: String, password: String): Boolean {
+        val requestBody = gson.toJson(LoginRequest(contrasena = password, correo = email)).toRequestBody(JSON_MEDIA_TYPE)
         val request = Request.Builder()
             .url("$BASE_URL/auth/login")
             .post(requestBody)
@@ -130,7 +130,14 @@ object BackendClient {
                     val body = response.body?.string()
                     val listType = object : TypeToken<List<CategoryDto>>() {}.type
                     val dtoList: List<CategoryDto> = gson.fromJson(body, listType)
-                    dtoList.map { Categoria(it.nombre, it.tipo, it.esDeMeta) }
+                    dtoList.map {
+                        val parsedTipo = try {
+                            com.example.gastosapp.domain.model.TipoCategoria.valueOf(it.tipo)
+                        } catch (e: Exception) {
+                            com.example.gastosapp.domain.model.TipoCategoria.GASTO
+                        }
+                        Categoria(it.nombre, parsedTipo, it.esDeMeta)
+                    }
                 } else emptyList()
             }
         } catch (e: Exception) {
@@ -141,7 +148,7 @@ object BackendClient {
 
     fun insertCategoria(categoria: Categoria): Boolean {
         val authHeader = getAuthHeader() ?: return false
-        val requestBody = gson.toJson(CategoryDto(categoria.nombre, categoria.tipo, categoria.esDeMeta)).toRequestBody(JSON_MEDIA_TYPE)
+        val requestBody = gson.toJson(CategoryDto(categoria.nombre, categoria.tipo.name, categoria.esDeMeta)).toRequestBody(JSON_MEDIA_TYPE)
         val request = Request.Builder()
             .url("$BASE_URL/categorias")
             .addHeader("Authorization", authHeader)

@@ -24,8 +24,12 @@ class IngresoRepositoryImpl(
     }
 
     override suspend fun insertarIngreso(ingreso: Ingreso) {
-        // Sync to backend first
-        com.example.gastosapp.data.remote.BackendClient.insertCategoria(Categoria(nombre = ingreso.nombreCategoria, tipo = "INGRESO"))
+        com.example.gastosapp.data.remote.BackendClient.insertCategoria(
+            com.example.gastosapp.domain.model.Categoria(
+                nombre = ingreso.nombreCategoria,
+                tipo = com.example.gastosapp.domain.model.TipoCategoria.INGRESO
+            )
+        )
         val serverId = com.example.gastosapp.data.remote.BackendClient.insertIngreso(ingreso)
         val finalIngreso = if (serverId != null) {
             ingreso.copy(codigoIngreso = serverId)
