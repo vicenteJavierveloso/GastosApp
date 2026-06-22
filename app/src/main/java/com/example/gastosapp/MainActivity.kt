@@ -70,6 +70,8 @@ class MainActivity : ComponentActivity() {
             .fallbackToDestructiveMigration(true)
             .build()
 
+        com.example.gastosapp.data.remote.BackendClient.init(applicationContext)
+
         val repository = GastoRepositoryImpl(
             gastoDao = database.gastoDao(),
             categoriaDao = database.categoriaDao(),
@@ -114,7 +116,7 @@ class MainActivity : ComponentActivity() {
 
         val authRepository = AuthRepositoryImpl(
             authRemoteDataSource = FirebaseAuthRemoteDataSource(FirebaseAuth.getInstance()),
-            usuarioDao = database.usuarioDao()
+            database = database
         )
         val iniciarSesionUseCase = IniciarSesionUseCase(authRepository)
         val obtenerUsuarioActualUseCase = ObtenerUsuarioActualUseCase(authRepository)

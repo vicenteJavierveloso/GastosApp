@@ -1,6 +1,7 @@
 package com.example.gastosapp.data.repository
 
-import com.example.gastosapp.data.local.dao.UsuarioDao
+import com.example.gastosapp.data.local.database.GastosDatabase
+import com.example.gastosapp.data.remote.BackendClient
 import com.example.gastosapp.data.remote.auth.AuthRemoteDataSource
 import com.example.gastosapp.domain.model.Usuario
 import com.example.gastosapp.domain.repository.AuthRepository
@@ -9,28 +10,43 @@ import com.example.gastosapp.data.local.entity.Usuario as UsuarioEntity
 
 class AuthRepositoryImpl(
     private val authRemoteDataSource: AuthRemoteDataSource,
-    private val usuarioDao: UsuarioDao
+    private val database: GastosDatabase
 ) : AuthRepository {
+    private val usuarioDao = database.usuarioDao()
+    private val categoriaDao = database.categoriaDao()
+    private val gastoDao = database.gastoDao()
+    private val ingresoDao = database.ingresoDao()
+    private val metaDao = database.metaDao()
+
     override suspend fun iniciarSesion(correo: String, contrasena: String): Usuario {
         val firebaseUser = authRemoteDataSource.iniciarSesion(correo, contrasena)
         val usuarioLocal = usuarioDao.obtenerUsuarioPorCorreo(firebaseUser.correo)
-        val fechaInicioSesion = Date()
+        val username = usuarioLocal?.nombreUsuario ?: generarNombreUsuario(firebaseUser.correo)
 
-        val usuarioActualizado = if (usuarioLocal != null) {
-            usuarioLocal.copy(
-                nombre = firebaseUser.nombre ?: usuarioLocal.nombre,
-                correo = firebaseUser.correo,
-                ultimoInicioDeSesion = fechaInicioSesion
-            )
-        } else {
-            UsuarioEntity(
-                nombreUsuario = generarNombreUsuario(firebaseUser.correo),
-                nombre = firebaseUser.nombre ?: generarNombreDesdeCorreo(firebaseUser.correo),
-                correo = firebaseUser.correo,
-                ultimoInicioDeSesion = fechaInicioSesion,
-                contrasena = ""
-            )
+        // Sync with Ktor Backend
+        var syncSuccess = BackendClient.login(correo, contrasena)
+        if (!syncSuccess) {
+            val name = firebaseUser.nombre ?: (usuarioLocal?.nombre ?: generarNombreDesdeCorreo(firebaseUser.correo))
+            syncSuccess = BackendClient.register(username, name, correo, contrasena)
         }
+
+        if (syncSuccess) {
+            try {
+                database.clearAllTables()
+                syncDataFromBackend(username)
+            } catch (e: Exception) {
+                // Ignore or log
+            }
+        }
+
+        val fechaInicioSesion = Date()
+        val usuarioActualizado = UsuarioEntity(
+            nombreUsuario = username,
+            nombre = firebaseUser.nombre ?: (usuarioLocal?.nombre ?: generarNombreDesdeCorreo(firebaseUser.correo)),
+            correo = firebaseUser.correo,
+            ultimoInicioDeSesion = fechaInicioSesion,
+            contrasena = ""
+        )
 
         usuarioDao.insertarUsuario(usuarioActualizado)
         return usuarioActualizado.toDomain()
@@ -39,26 +55,120 @@ class AuthRepositoryImpl(
     override suspend fun obtenerUsuarioActual(): Usuario? {
         val firebaseUser = authRemoteDataSource.obtenerUsuarioActual() ?: return null
         val usuarioLocal = usuarioDao.obtenerUsuarioPorCorreo(firebaseUser.correo)
-        val fechaInicioSesion = Date()
+        val username = usuarioLocal?.nombreUsuario ?: generarNombreUsuario(firebaseUser.correo)
 
-        val usuarioActualizado = if (usuarioLocal != null) {
-            usuarioLocal.copy(
-                nombre = firebaseUser.nombre ?: usuarioLocal.nombre,
-                correo = firebaseUser.correo,
-                ultimoInicioDeSesion = fechaInicioSesion
-            )
-        } else {
-            UsuarioEntity(
-                nombreUsuario = generarNombreUsuario(firebaseUser.correo),
-                nombre = firebaseUser.nombre ?: generarNombreDesdeCorreo(firebaseUser.correo),
-                correo = firebaseUser.correo,
-                ultimoInicioDeSesion = fechaInicioSesion,
-                contrasena = ""
-            )
+        if (BackendClient.hasToken()) {
+            try {
+                database.clearAllTables()
+                syncDataFromBackend(username)
+            } catch (e: Exception) {
+                // Ignore or log
+            }
         }
+
+        val fechaInicioSesion = Date()
+        val usuarioActualizado = UsuarioEntity(
+            nombreUsuario = username,
+            nombre = firebaseUser.nombre ?: (usuarioLocal?.nombre ?: generarNombreDesdeCorreo(firebaseUser.correo)),
+            correo = firebaseUser.correo,
+            ultimoInicioDeSesion = fechaInicioSesion,
+            contrasena = ""
+        )
 
         usuarioDao.insertarUsuario(usuarioActualizado)
         return usuarioActualizado.toDomain()
+    }
+
+    private suspend fun syncDataFromBackend(username: String) {
+        // Fetch all categories
+        val categoriasRemote = BackendClient.getCategorias()
+        categoriasRemote.forEach { cat ->
+            categoriaDao.insertarCategoria(
+                com.example.gastosapp.data.local.entity.Categoria(
+                    nombre = cat.nombre,
+                    tipo = cat.tipo.name,
+                    esDeMeta = cat.esDeMeta
+                )
+            )
+        }
+
+        // Fetch all incomes
+        val ingresosRemote = BackendClient.getIngresos()
+        ingresosRemote.forEach { ing ->
+            if (usuarioDao.obtenerUsuarioPorNombreUsuario(ing.nombreDeUsuario) == null) {
+                usuarioDao.insertarUsuario(
+                    UsuarioEntity(
+                        nombreUsuario = ing.nombreDeUsuario,
+                        nombre = ing.nombreDeUsuario,
+                        correo = "",
+                        ultimoInicioDeSesion = Date(),
+                        contrasena = ""
+                    )
+                )
+            }
+            ingresoDao.insertarIngreso(
+                com.example.gastosapp.data.local.entity.Ingreso(
+                    codigoIngreso = ing.codigoIngreso,
+                    monto = ing.monto,
+                    detalle = ing.detalle,
+                    nombreDeUsuario = ing.nombreDeUsuario,
+                    nombreCategoria = ing.nombreCategoria,
+                    fecha = ing.fecha
+                )
+            )
+        }
+
+        // Fetch all expenses
+        val gastosRemote = BackendClient.getGastos()
+        gastosRemote.forEach { gasto ->
+            if (usuarioDao.obtenerUsuarioPorNombreUsuario(gasto.nombreDeUsuario) == null) {
+                usuarioDao.insertarUsuario(
+                    UsuarioEntity(
+                        nombreUsuario = gasto.nombreDeUsuario,
+                        nombre = gasto.nombreDeUsuario,
+                        correo = "",
+                        ultimoInicioDeSesion = Date(),
+                        contrasena = ""
+                    )
+                )
+            }
+            gastoDao.insertarGasto(
+                com.example.gastosapp.data.local.entity.Gasto(
+                    codigoGasto = gasto.codigoGasto,
+                    monto = gasto.monto,
+                    detalle = gasto.detalle,
+                    nombreDeUsuario = gasto.nombreDeUsuario,
+                    nombreCategoria = gasto.nombreCategoria,
+                    fecha = gasto.fecha
+                )
+            )
+        }
+
+        // Fetch all metas
+        val metasRemote = BackendClient.getMetas()
+        metasRemote.forEach { meta ->
+            if (usuarioDao.obtenerUsuarioPorNombreUsuario(meta.nombreDeUsuario) == null) {
+                usuarioDao.insertarUsuario(
+                    UsuarioEntity(
+                        nombreUsuario = meta.nombreDeUsuario,
+                        nombre = meta.nombreDeUsuario,
+                        correo = "",
+                        ultimoInicioDeSesion = Date(),
+                        contrasena = ""
+                    )
+                )
+            }
+            metaDao.insertarMeta(
+                com.example.gastosapp.data.local.entity.Meta(
+                    codigoMeta = meta.codigoMeta,
+                    monto = meta.monto,
+                    nombreDeUsuario = meta.nombreDeUsuario,
+                    nombreCategoria = meta.nombreCategoria,
+                    fechaLimite = meta.fechaLimite,
+                    activa = meta.activa
+                )
+            )
+        }
     }
 
     private suspend fun generarNombreUsuario(correo: String): String {
