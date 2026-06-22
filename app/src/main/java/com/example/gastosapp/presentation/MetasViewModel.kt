@@ -53,6 +53,12 @@ class MetasViewModel(
             is MetasEvent.RetirarFondos -> {
                 retirarFondos(event.meta)
             }
+            is MetasEvent.DesactivarMeta -> {
+                desactivarMeta(event.meta)
+            }
+            is MetasEvent.ActivarMeta -> {
+                activarMeta(event.meta)
+            }
         }
     }
 
@@ -73,7 +79,9 @@ class MetasViewModel(
 
                     MetaProgress(
                         meta = meta,
-                        montoActual = totalIngresos - totalGastos
+                        montoActual = totalIngresos - totalGastos,
+                        totalIngresos = totalIngresos,
+                        totalGastos = totalGastos
                     )
                 }
             }.collect { progressList ->
@@ -181,9 +189,38 @@ class MetasViewModel(
                     fecha = Date()
                 )
                 agregarGastoUseCase(gasto)
+                
+                // Desactivar automáticamente al retirar
+                val updatedMeta = meta.copy(activa = false)
+                metaUseCases.actualizarMeta(updatedMeta)
+                
                 _state.value = _state.value.copy(error = null)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(error = e.message ?: "Error al retirar fondos")
+            }
+        }
+    }
+
+    private fun desactivarMeta(meta: Meta) {
+        viewModelScope.launch {
+            try {
+                val updatedMeta = meta.copy(activa = false)
+                metaUseCases.actualizarMeta(updatedMeta)
+                _state.value = _state.value.copy(error = null)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(error = e.message ?: "Error al desactivar meta")
+            }
+        }
+    }
+
+    private fun activarMeta(meta: Meta) {
+        viewModelScope.launch {
+            try {
+                val updatedMeta = meta.copy(activa = true)
+                metaUseCases.actualizarMeta(updatedMeta)
+                _state.value = _state.value.copy(error = null)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(error = e.message ?: "Error al activar meta")
             }
         }
     }

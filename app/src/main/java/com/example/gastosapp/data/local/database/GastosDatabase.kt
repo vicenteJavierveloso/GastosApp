@@ -18,7 +18,7 @@ import com.example.gastosapp.data.local.entity.Usuario
 
 @Database(
     entities = [Usuario::class, Categoria::class, Gasto::class, Ingreso::class, Meta::class],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

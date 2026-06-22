@@ -20,4 +20,7 @@ sealed class MetasEvent {
     data class RetirarFondos(
         val meta: Meta
     ) : MetasEvent()
+
+    data class DesactivarMeta(val meta: Meta) : MetasEvent()
+    data class ActivarMeta(val meta: Meta) : MetasEvent()
 }

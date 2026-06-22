@@ -37,7 +37,10 @@ data class Meta(
     val nombreCategoria: String,
 
     @ColumnInfo(name = "fechalimite")
-    val fechaLimite: Date
+    val fechaLimite: Date,
+
+    @ColumnInfo(name = "activa", defaultValue = "1")
+    val activa: Boolean = true
 ) {
     init {
         require(nombreDeUsuario.length <= 30) {

@@ -7,4 +7,5 @@ interface MetaRepository {
     fun obtenerMetas(): Flow<List<Meta>>
     suspend fun insertarMeta(meta: Meta)
     suspend fun eliminarMeta(meta: Meta)
+    suspend fun actualizarMeta(meta: Meta)
 }

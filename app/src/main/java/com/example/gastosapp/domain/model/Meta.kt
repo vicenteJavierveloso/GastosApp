@@ -7,5 +7,6 @@ data class Meta(
     val monto: Int,
     val nombreDeUsuario: String,
     val nombreCategoria: String,
-    val fechaLimite: Date
+    val fechaLimite: Date,
+    val activa: Boolean = true
 )

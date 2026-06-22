@@ -3,5 +3,6 @@ package com.example.gastosapp.domain.usecase
 data class MetaUseCases(
     val obtenerMetas: ObtenerMetasUseCase,
     val agregarMeta: AgregarMetaUseCase,
-    val eliminarMeta: EliminarMetaUseCase
+    val eliminarMeta: EliminarMetaUseCase,
+    val actualizarMeta: ActualizarMetaUseCase
 )

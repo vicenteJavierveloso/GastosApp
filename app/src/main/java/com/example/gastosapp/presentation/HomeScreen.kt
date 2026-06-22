@@ -22,7 +22,9 @@ fun HomeScreen(
     onNavigateToGastos: () -> Unit,
     onNavigateToIngresos: () -> Unit,
     onNavigateToCategorias: () -> Unit,
-    onNavigateToMetas: () -> Unit
+    onNavigateToMetas: () -> Unit,
+    onNavigateToVerIngresos: () -> Unit,
+    onNavigateToVerGastos: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL")) }
@@ -62,6 +64,7 @@ fun HomeScreen(
                     value = formatter.format(state.totalIngresos),
                     detail = "${state.cantidadIngresos} registros",
                     accentColor = Color(0xFF1B7F5C),
+                    onClick = onNavigateToVerIngresos,
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
@@ -69,6 +72,7 @@ fun HomeScreen(
                     value = formatter.format(state.totalGastos),
                     detail = "${state.cantidadGastos} registros",
                     accentColor = Color(0xFFC2410C),
+                    onClick = onNavigateToVerGastos,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -78,6 +82,7 @@ fun HomeScreen(
                 value = state.principalCategoriaGasto ?: "Sin gastos",
                 detail = "Mayor monto acumulado",
                 accentColor = Color(0xFF3B6EA8),
+                onClick = {},
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -158,10 +163,11 @@ private fun StatCard(
     value: String,
     detail: String,
     accentColor: Color,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         colors = CardDefaults.cardColors(

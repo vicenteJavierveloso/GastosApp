@@ -160,6 +160,12 @@ fun MetasScreen(
                         },
                         onDelete = {
                             viewModel.onEvent(MetasEvent.EliminarMeta(progress.meta))
+                        },
+                        onDesactivar = {
+                            viewModel.onEvent(MetasEvent.DesactivarMeta(progress.meta))
+                        },
+                        onActivar = {
+                            viewModel.onEvent(MetasEvent.ActivarMeta(progress.meta))
                         }
                     )
                 }
@@ -235,19 +241,32 @@ fun MetaItem(
     progress: MetaProgress,
     onAportar: () -> Unit,
     onRetirar: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onDesactivar: () -> Unit,
+    onActivar: () -> Unit
 ) {
     val meta = progress.meta
     val montoActual = progress.montoActual
-    val reached = montoActual >= meta.monto
+    val totalIngresos = progress.totalIngresos
+    val totalGastos = progress.totalGastos
+    val reached = totalIngresos >= meta.monto
+    val withdrawn = totalGastos >= totalIngresos && totalIngresos > 0
     val limitPassed = Date().after(meta.fechaLimite)
+    
+    // Remaining amount to reach the goal:
+    val montoRestante = maxOf(0, meta.monto - totalIngresos)
+    
     val showWarning = !reached && limitPassed
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (reached) {
+            containerColor = if (!meta.activa) {
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            } else if (reached && withdrawn) {
+                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+            } else if (reached) {
                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
             } else if (showWarning) {
                 MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
@@ -266,14 +285,15 @@ fun MetaItem(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = meta.nombreCategoria,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = if (meta.activa) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                     Text(
-                        text = "Objetivo: $${meta.monto} | Ahorro: $${montoActual}",
+                        text = "Objetivo: $${meta.monto} | Ahorrado: $${totalIngresos} | Restante: $${montoRestante}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
@@ -287,41 +307,74 @@ fun MetaItem(
                 }
             }
 
-            if (showWarning) {
-                Text(
-                    text = "⚠️ ¡Tiempo límite excedido y meta no completada!",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Bold
-                )
-            } else if (reached) {
-                Text(
-                    text = "🎉 ¡Meta alcanzada con éxito!",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = onAportar,
-                    modifier = Modifier.weight(1f)
+            if (!meta.activa) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Aportar")
-                }
-                Button(
-                    onClick = onRetirar,
-                    enabled = reached, // Solamente habilitado cuando la meta ha sido alcanzada
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
+                    Text(
+                        text = "🔴 Meta Inactiva / Completada",
+                        color = MaterialTheme.colorScheme.outline,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold
                     )
+                    TextButton(onClick = onActivar) {
+                        Text("Activar")
+                    }
+                }
+            } else {
+                if (reached && withdrawn) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "🎉 ¡Alcanzada y Retirada!",
+                            color = MaterialTheme.colorScheme.secondary,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        TextButton(onClick = onDesactivar) {
+                            Text("Desactivar")
+                        }
+                    }
+                } else if (reached) {
+                    Text(
+                        text = "🎉 ¡Meta alcanzada! Lista para retirar.",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                } else if (showWarning) {
+                    Text(
+                        text = "⚠️ ¡Tiempo límite excedido y meta no completada!",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Retirar")
+                    Button(
+                        onClick = onAportar,
+                        modifier = Modifier.weight(1f),
+                        enabled = !reached // No permitir aportar más una vez alcanzada
+                    ) {
+                        Text("Aportar")
+                    }
+                    Button(
+                        onClick = onRetirar,
+                        enabled = reached && !withdrawn, // Habilitado solo cuando se alcanzó y no se ha retirado
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        )
+                    ) {
+                        Text("Retirar todo")
+                    }
                 }
             }
         }

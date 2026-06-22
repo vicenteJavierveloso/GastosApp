@@ -51,13 +51,18 @@ class MetaRepositoryImpl(
         categoriaDao.eliminarCategoria(Categoria(nombre = meta.nombreCategoria, tipo = "INGRESO", esDeMeta = true))
     }
 
+    override suspend fun actualizarMeta(meta: Meta) {
+        metaDao.actualizarMeta(meta.toEntity())
+    }
+
     private fun MetaEntity.toDomain(): Meta {
         return Meta(
             codigoMeta = codigoMeta,
             monto = monto,
             nombreDeUsuario = nombreDeUsuario,
             nombreCategoria = nombreCategoria,
-            fechaLimite = fechaLimite
+            fechaLimite = fechaLimite,
+            activa = activa
         )
     }
 
@@ -67,7 +72,8 @@ class MetaRepositoryImpl(
             monto = monto,
             nombreDeUsuario = nombreDeUsuario,
             nombreCategoria = nombreCategoria,
-            fechaLimite = fechaLimite
+            fechaLimite = fechaLimite,
+            activa = activa
         )
     }
 }

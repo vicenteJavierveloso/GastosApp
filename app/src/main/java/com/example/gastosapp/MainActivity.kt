@@ -17,6 +17,7 @@ import com.example.gastosapp.data.repository.CategoriaRepositoryImpl
 import com.example.gastosapp.data.repository.GastoRepositoryImpl
 import com.example.gastosapp.data.repository.IngresoRepositoryImpl
 import com.example.gastosapp.data.repository.MetaRepositoryImpl
+import com.example.gastosapp.domain.usecase.ActualizarMetaUseCase
 import com.example.gastosapp.domain.usecase.AgregarCategoriaUseCase
 import com.example.gastosapp.domain.usecase.AgregarGastoUseCase
 import com.example.gastosapp.domain.usecase.AgregarIngresoUseCase
@@ -46,6 +47,8 @@ import com.example.gastosapp.presentation.IngresosScreen
 import com.example.gastosapp.presentation.IngresosViewModel
 import com.example.gastosapp.presentation.MetasScreen
 import com.example.gastosapp.presentation.MetasViewModel
+import com.example.gastosapp.presentation.VerGastosScreen
+import com.example.gastosapp.presentation.VerIngresosScreen
 import com.example.gastosapp.presentation.auth.AuthViewModel
 import com.example.gastosapp.presentation.auth.LoginScreen
 import com.example.gastosapp.ui.theme.GastosAppTheme
@@ -105,7 +108,8 @@ class MainActivity : ComponentActivity() {
         val metaUseCases = MetaUseCases(
             obtenerMetas = ObtenerMetasUseCase(metaRepository),
             agregarMeta = AgregarMetaUseCase(metaRepository),
-            eliminarMeta = EliminarMetaUseCase(metaRepository)
+            eliminarMeta = EliminarMetaUseCase(metaRepository),
+            actualizarMeta = ActualizarMetaUseCase(metaRepository)
         )
 
         val authRepository = AuthRepositoryImpl(
@@ -230,6 +234,12 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToMetas = {
                                 navController.navigate("metas")
+                            },
+                            onNavigateToVerIngresos = {
+                                navController.navigate("ver_ingresos")
+                            },
+                            onNavigateToVerGastos = {
+                                navController.navigate("ver_gastos")
                             }
                         )
                     }
@@ -255,6 +265,20 @@ class MainActivity : ComponentActivity() {
                         MetasScreen(
                             viewModel = metasViewModel,
                             onBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable("ver_ingresos") {
+                        VerIngresosScreen(
+                            viewModel = ingresosViewModel,
+                            onBack = { navController.popBackStack() },
+                            onNavigateToAdd = { navController.navigate("ingresos") }
+                        )
+                    }
+                    composable("ver_gastos") {
+                        VerGastosScreen(
+                            viewModel = gastosViewModel,
+                            onBack = { navController.popBackStack() },
+                            onNavigateToAdd = { navController.navigate("gastos") }
                         )
                     }
                 }
