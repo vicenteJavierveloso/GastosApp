@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.gastosapp.domain.model.Gasto
 import com.example.gastosapp.domain.usecase.ObtenerGastosUseCase
 import com.example.gastosapp.domain.usecase.ObtenerIngresosUseCase
+import java.util.Calendar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,16 +30,30 @@ class HomeViewModel(
                 obtenerGastos(),
                 obtenerIngresos()
             ) { gastos, ingresos ->
-                val totalGastos = gastos.sumOf { it.monto }
-                val totalIngresos = ingresos.sumOf { it.monto }
+                val calendar = Calendar.getInstance()
+                val currentYear = calendar.get(Calendar.YEAR)
+                val currentMonth = calendar.get(Calendar.MONTH)
+
+                val currentMonthGastos = gastos.filter { gasto ->
+                    calendar.time = gasto.fecha
+                    calendar.get(Calendar.YEAR) == currentYear && calendar.get(Calendar.MONTH) == currentMonth
+                }
+
+                val currentMonthIngresos = ingresos.filter { ingreso ->
+                    calendar.time = ingreso.fecha
+                    calendar.get(Calendar.YEAR) == currentYear && calendar.get(Calendar.MONTH) == currentMonth
+                }
+
+                val totalGastos = currentMonthGastos.sumOf { it.monto }
+                val totalIngresos = currentMonthIngresos.sumOf { it.monto }
 
                 HomeState(
                     totalGastos = totalGastos,
                     totalIngresos = totalIngresos,
                     balance = totalIngresos - totalGastos,
-                    cantidadGastos = gastos.size,
-                    cantidadIngresos = ingresos.size,
-                    principalCategoriaGasto = gastos.principalCategoria()
+                    cantidadGastos = currentMonthGastos.size,
+                    cantidadIngresos = currentMonthIngresos.size,
+                    principalCategoriaGasto = currentMonthGastos.principalCategoria()
                 )
             }.collect { nextState ->
                 _state.value = nextState
