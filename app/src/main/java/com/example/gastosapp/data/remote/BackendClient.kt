@@ -17,7 +17,7 @@ import java.io.IOException
 import java.util.Date
 
 object BackendClient {
-    private const val BASE_URL = "http://10.0.2.2:8080"
+    private const val BASE_URL = "http://10.0.2.2:8080/v1"
     private val client = OkHttpClient()
     private val gson = Gson()
     private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
