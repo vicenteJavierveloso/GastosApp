@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.gastosapp.domain.model.Meta
+import com.example.gastosapp.presentation.components.LoadingModal
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -50,6 +51,7 @@ fun MetasScreen(
             )
         }
     ) { padding ->
+        LoadingModal(isLoading = state.isLoading)
         Column(
             modifier = Modifier
                 .padding(padding)

@@ -44,23 +44,25 @@ class CategoriasViewModel(
 
     private fun agregarCategoria(nombre: String, tipo: TipoCategoria) {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
             try {
                 val categoria = Categoria(nombre = nombre, tipo = tipo)
                 categoriaUseCases.agregarCategoria(categoria)
-                _state.value = _state.value.copy(error = null)
+                _state.value = _state.value.copy(error = null, isLoading = false)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message ?: "Error desconocido")
+                _state.value = _state.value.copy(error = e.message ?: "Error desconocido", isLoading = false)
             }
         }
     }
 
     private fun eliminarCategoria(categoria: Categoria) {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
             try {
                 categoriaUseCases.eliminarCategoria(categoria)
-                _state.value = _state.value.copy(error = null)
+                _state.value = _state.value.copy(error = null, isLoading = false)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message ?: "No se pudo eliminar la categoría. Asegúrese de que no esté en uso.")
+                _state.value = _state.value.copy(error = e.message ?: "No se pudo eliminar la categoría. Asegúrese de que no esté en uso.", isLoading = false)
             }
         }
     }

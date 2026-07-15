@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.gastosapp.domain.model.Categoria
 import com.example.gastosapp.domain.model.TipoCategoria
+import com.example.gastosapp.presentation.components.LoadingModal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +37,7 @@ fun CategoriasScreen(
             )
         }
     ) { padding ->
+        LoadingModal(isLoading = state.isLoading)
         Column(
             modifier = Modifier
                 .padding(padding)

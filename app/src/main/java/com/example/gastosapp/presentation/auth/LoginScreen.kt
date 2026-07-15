@@ -19,6 +19,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import com.example.gastosapp.presentation.components.LoadingModal
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -59,6 +60,7 @@ fun LoginScreen(
             )
         }
     ) { padding ->
+        LoadingModal(isLoading = state.isLoading)
         Column(
             modifier = Modifier
                 .padding(padding)

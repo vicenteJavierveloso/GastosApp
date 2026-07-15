@@ -69,6 +69,7 @@ class GastosViewModel(
         fecha: Date
     ) {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
             try {
                 val username = obtenerUsuarioActualUseCase()?.nombreUsuario ?: ""
                 if (username.isBlank()) {
@@ -82,16 +83,22 @@ class GastosViewModel(
                     fecha = fecha
                 )
                 gastoUseCases.agregarGasto(gasto)
-                _state.value = _state.value.copy(error = null)
+                _state.value = _state.value.copy(error = null, isLoading = false)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message ?: "Error desconocido")
+                _state.value = _state.value.copy(error = e.message ?: "Error desconocido", isLoading = false)
             }
         }
     }
 
     private fun eliminarGasto(gasto: Gasto) {
         viewModelScope.launch {
-            gastoUseCases.eliminarGasto(gasto)
+            _state.value = _state.value.copy(isLoading = true)
+            try {
+                gastoUseCases.eliminarGasto(gasto)
+                _state.value = _state.value.copy(error = null, isLoading = false)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(error = e.message ?: "Error al eliminar gasto", isLoading = false)
+            }
         }
     }
 }

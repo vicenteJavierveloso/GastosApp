@@ -98,6 +98,7 @@ class MetasViewModel(
         fechaLimite: Date
     ) {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
             try {
                 val username = obtenerUsuarioActualUseCase()?.nombreUsuario ?: ""
                 if (username.isBlank()) {
@@ -110,26 +111,28 @@ class MetasViewModel(
                     fechaLimite = fechaLimite
                 )
                 metaUseCases.agregarMeta(meta)
-                _state.value = _state.value.copy(error = null)
+                _state.value = _state.value.copy(error = null, isLoading = false)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message ?: "Error desconocido")
+                _state.value = _state.value.copy(error = e.message ?: "Error desconocido", isLoading = false)
             }
         }
     }
 
     private fun eliminarMeta(meta: Meta) {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
             try {
                 metaUseCases.eliminarMeta(meta)
-                _state.value = _state.value.copy(error = null)
+                _state.value = _state.value.copy(error = null, isLoading = false)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message ?: "Error al eliminar meta")
+                _state.value = _state.value.copy(error = e.message ?: "Error al eliminar meta", isLoading = false)
             }
         }
     }
 
     private fun aportarFondos(meta: Meta, monto: Int) {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
             try {
                 if (monto <= 0) {
                     throw Exception("El monto a aportar debe ser mayor a cero.")
@@ -142,15 +145,16 @@ class MetasViewModel(
                     fecha = Date()
                 )
                 agregarIngresoUseCase(ingreso)
-                _state.value = _state.value.copy(error = null)
+                _state.value = _state.value.copy(error = null, isLoading = false)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message ?: "Error al aportar fondos")
+                _state.value = _state.value.copy(error = e.message ?: "Error al aportar fondos", isLoading = false)
             }
         }
     }
 
     private fun retirarFondos(meta: Meta) {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
             try {
                 // Calcular el progreso actual
                 val progress = state.value.metasProgress.find { it.meta.codigoMeta == meta.codigoMeta }
@@ -177,33 +181,35 @@ class MetasViewModel(
                 val updatedMeta = meta.copy(activa = false)
                 metaUseCases.actualizarMeta(updatedMeta)
                 
-                _state.value = _state.value.copy(error = null)
+                _state.value = _state.value.copy(error = null, isLoading = false)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message ?: "Error al completar meta")
+                _state.value = _state.value.copy(error = e.message ?: "Error al completar meta", isLoading = false)
             }
         }
     }
 
     private fun desactivarMeta(meta: Meta) {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
             try {
                 val updatedMeta = meta.copy(activa = false)
                 metaUseCases.actualizarMeta(updatedMeta)
-                _state.value = _state.value.copy(error = null)
+                _state.value = _state.value.copy(error = null, isLoading = false)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message ?: "Error al desactivar meta")
+                _state.value = _state.value.copy(error = e.message ?: "Error al desactivar meta", isLoading = false)
             }
         }
     }
 
     private fun activarMeta(meta: Meta) {
         viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
             try {
                 val updatedMeta = meta.copy(activa = true)
                 metaUseCases.actualizarMeta(updatedMeta)
-                _state.value = _state.value.copy(error = null)
+                _state.value = _state.value.copy(error = null, isLoading = false)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message ?: "Error al activar meta")
+                _state.value = _state.value.copy(error = e.message ?: "Error al activar meta", isLoading = false)
             }
         }
     }
