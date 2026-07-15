@@ -12,6 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.ui.graphics.vector.ImageVector
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -95,28 +102,28 @@ fun HomeScreen(
             ManagementOption(
                 title = "Gastos",
                 subtitle = "Registrar y revisar egresos",
-                symbol = "-",
+                icon = Icons.Filled.ShoppingCart,
                 accentColor = Color(0xFFC2410C),
                 onClick = onNavigateToGastos
             )
             ManagementOption(
                 title = "Ingresos",
                 subtitle = "Registrar y revisar entradas",
-                symbol = "+",
+                icon = Icons.Filled.Add,
                 accentColor = Color(0xFF1B7F5C),
                 onClick = onNavigateToIngresos
             )
             ManagementOption(
                 title = "Categorias",
                 subtitle = "Organizar movimientos",
-                symbol = "#",
+                icon = Icons.Filled.List,
                 accentColor = Color(0xFF3B6EA8),
                 onClick = onNavigateToCategorias
             )
             ManagementOption(
                 title = "Metas de Ahorro",
                 subtitle = "Establecer y gestionar objetivos",
-                symbol = "$",
+                icon = Icons.Filled.Star,
                 accentColor = Color(0xFFEAB308),
                 onClick = onNavigateToMetas
             )
@@ -202,7 +209,7 @@ private fun StatCard(
 private fun ManagementOption(
     title: String,
     subtitle: String,
-    symbol: String,
+    icon: ImageVector,
     accentColor: Color,
     onClick: () -> Unit
 ) {
@@ -228,13 +235,15 @@ private fun ManagementOption(
                 shape = CircleShape,
                 color = accentColor.copy(alpha = 0.14f)
             ) {
-                Box {
-                    Text(
-                        text = symbol,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = accentColor
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = title,
+                        tint = accentColor,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }

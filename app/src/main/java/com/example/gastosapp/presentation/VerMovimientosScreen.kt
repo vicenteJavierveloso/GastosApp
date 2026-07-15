@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +43,7 @@ fun VerIngresosScreen(
                 title = { Text("Registros de Ingresos") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Text("<")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 }
             )
@@ -193,7 +195,7 @@ fun VerGastosScreen(
                 title = { Text("Registros de Gastos") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Text("<")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 }
             )
