@@ -5,6 +5,7 @@ import com.example.gastosapp.domain.model.Usuario
 data class AuthState(
     val correo: String = "",
     val contrasena: String = "",
+    val confirmarContrasena: String = "",
     val nombreUsuario: String = "",
     val nombre: String = "",
     val usuario: Usuario? = null,

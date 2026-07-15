@@ -19,7 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object BackendClient {
-    private const val BASE_URL = "http://127.0.0.1:8080/v1"
+    private const val BASE_URL = "http://192.168.1.4:8080/v1"
     private val client = OkHttpClient()
     private val gson = Gson()
     private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()

@@ -122,6 +122,20 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            if (isRegisterMode) {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = state.confirmarContrasena,
+                    onValueChange = { viewModel.onEvent(AuthEvent.ConfirmarContrasenaChanged(it)) },
+                    label = { Text("Confirmar Contraseña") },
+                    enabled = !state.isLoading,
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             if (state.error != null) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(

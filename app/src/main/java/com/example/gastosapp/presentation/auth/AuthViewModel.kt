@@ -25,6 +25,9 @@ class AuthViewModel(
             is AuthEvent.ContrasenaChanged -> {
                 _state.update { it.copy(contrasena = event.contrasena, error = null) }
             }
+            is AuthEvent.ConfirmarContrasenaChanged -> {
+                _state.update { it.copy(confirmarContrasena = event.contrasena, error = null) }
+            }
             is AuthEvent.NombreUsuarioChanged -> {
                 _state.update { it.copy(nombreUsuario = event.nombreUsuario, error = null) }
             }
@@ -68,6 +71,12 @@ class AuthViewModel(
         val name = state.value.nombre
         val correo = state.value.correo
         val contrasena = state.value.contrasena
+        val confirmarContrasena = state.value.confirmarContrasena
+
+        if (contrasena != confirmarContrasena) {
+            _state.update { it.copy(error = "Las contraseñas no coinciden.") }
+            return
+        }
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -77,6 +86,7 @@ class AuthViewModel(
                     it.copy(
                         usuario = usuario,
                         contrasena = "",
+                        confirmarContrasena = "",
                         nombreUsuario = "",
                         nombre = "",
                         isLoading = false,
