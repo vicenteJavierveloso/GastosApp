@@ -213,9 +213,9 @@ fun MetasScreen(
         val montoActual = progress?.montoActual ?: 0
         AlertDialog(
             onDismissRequest = { showRetirarDialogFor = null },
-            title = { Text("Retiro de Ahorros") },
+            title = { Text("Completar meta") },
             text = {
-                Text("¿Está seguro de que desea retirar la totalidad del ahorro acumulado ($${montoActual}) para la meta '${showRetirarDialogFor!!.nombreCategoria}'?")
+                Text("¿Está seguro de que desea completar la meta '${showRetirarDialogFor!!.nombreCategoria}' con un monto de ($${montoActual})?")
             },
             confirmButton = {
                 Button(
@@ -224,7 +224,7 @@ fun MetasScreen(
                         showRetirarDialogFor = null
                     }
                 ) {
-                    Text("Retirar Todo")
+                    Text("Completar")
                 }
             },
             dismissButton = {
@@ -329,7 +329,7 @@ fun MetaItem(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "🎉 ¡Alcanzada y Retirada!",
+                            text = "🎉 ¡Alcanzada y Completada!",
                             color = MaterialTheme.colorScheme.secondary,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold
@@ -340,7 +340,7 @@ fun MetaItem(
                     }
                 } else if (reached) {
                     Text(
-                        text = "🎉 ¡Meta alcanzada! Lista para retirar.",
+                        text = "🎉 ¡Meta alcanzada! Lista para completar.",
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold
@@ -373,7 +373,7 @@ fun MetaItem(
                             containerColor = MaterialTheme.colorScheme.secondary
                         )
                     ) {
-                        Text("Retirar todo")
+                        Text("Completar")
                     }
                 }
             }

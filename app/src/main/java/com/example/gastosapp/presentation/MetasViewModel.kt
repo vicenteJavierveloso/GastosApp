@@ -175,15 +175,15 @@ class MetasViewModel(
 
                 // Restricción: unicamente se permitira sustraer cuando la meta haya sido alcanzada
                 if (montoActual < meta.monto) {
-                    throw Exception("No se puede retirar fondos: la meta de ahorro de $${meta.monto} aún no ha sido alcanzada (ahorro actual: $${montoActual}).")
+                    throw Exception("No se puede completar la meta: la meta de ahorro de $${meta.monto} aún no ha sido alcanzada (ahorro actual: $${montoActual}).")
                 }
                 if (montoActual <= 0) {
-                    throw Exception("No hay fondos acumulados para retirar.")
+                    throw Exception("No hay fondos acumulados para completar la meta.")
                 }
 
                 val gasto = Gasto(
                     monto = montoActual,
-                    detalle = "Retiro total de meta: ${meta.nombreCategoria}",
+                    detalle = "Meta completada: ${meta.nombreCategoria}",
                     nombreDeUsuario = meta.nombreDeUsuario,
                     nombreCategoria = meta.nombreCategoria,
                     fecha = Date()
@@ -196,7 +196,7 @@ class MetasViewModel(
                 
                 _state.value = _state.value.copy(error = null)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message ?: "Error al retirar fondos")
+                _state.value = _state.value.copy(error = e.message ?: "Error al completar meta")
             }
         }
     }
