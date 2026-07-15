@@ -62,11 +62,7 @@ fun MetasScreen(
                 )
             }
 
-            Text(
-                text = "Usuario actual: ${state.nombreDeUsuario.ifBlank { "Cargando..." }}",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+
 
             TextField(
                 value = nombreCategoria,

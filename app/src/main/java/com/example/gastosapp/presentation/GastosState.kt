@@ -6,7 +6,6 @@ import com.example.gastosapp.domain.model.Gasto
 data class GastosState(
     val gastos: List<Gasto> = emptyList(),
     val categorias: List<Categoria> = emptyList(),
-    val nombreDeUsuario: String = "",
     val isLoading: Boolean = false,
     val error: String? = null
 )

@@ -11,7 +11,6 @@ data class MetaProgress(
 
 data class MetasState(
     val metasProgress: List<MetaProgress> = emptyList(),
-    val nombreDeUsuario: String = "",
     val isLoading: Boolean = false,
     val error: String? = null
 )

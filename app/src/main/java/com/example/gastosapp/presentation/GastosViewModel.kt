@@ -27,7 +27,6 @@ class GastosViewModel(
     init {
         obtenerGastos()
         obtenerCategorias()
-        cargarUsuarioActual()
     }
 
     fun onEvent(event: GastosEvent) {
@@ -62,22 +61,6 @@ class GastosViewModel(
         }.launchIn(viewModelScope)
     }
 
-    private fun cargarUsuarioActual() {
-        viewModelScope.launch {
-            try {
-                val usuario = obtenerUsuarioActualUseCase()
-                if (usuario != null) {
-                    _state.value = state.value.copy(
-                        nombreDeUsuario = usuario.nombreUsuario
-                    )
-                }
-            } catch (e: Exception) {
-                _state.value = state.value.copy(
-                    error = e.message ?: "Error al cargar usuario actual"
-                )
-            }
-        }
-    }
 
     private fun agregarGasto(
         detalle: String,
@@ -87,7 +70,7 @@ class GastosViewModel(
     ) {
         viewModelScope.launch {
             try {
-                val username = state.value.nombreDeUsuario
+                val username = obtenerUsuarioActualUseCase()?.nombreUsuario ?: ""
                 if (username.isBlank()) {
                     throw Exception("No hay un usuario autenticado.")
                 }
