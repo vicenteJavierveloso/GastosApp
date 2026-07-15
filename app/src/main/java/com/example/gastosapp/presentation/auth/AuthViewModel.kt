@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gastosapp.domain.usecase.IniciarSesionUseCase
 import com.example.gastosapp.domain.usecase.RegistrarUsuarioUseCase
+import com.example.gastosapp.domain.usecase.ObtenerUsuarioActualUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,10 +13,27 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel(
     private val iniciarSesionUseCase: IniciarSesionUseCase,
-    private val registrarUsuarioUseCase: RegistrarUsuarioUseCase
+    private val registrarUsuarioUseCase: RegistrarUsuarioUseCase,
+    private val obtenerUsuarioActualUseCase: ObtenerUsuarioActualUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(AuthState())
     val state: StateFlow<AuthState> = _state.asStateFlow()
+
+    init {
+        checkCurrentUser()
+    }
+
+    private fun checkCurrentUser() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            val currentUser = obtenerUsuarioActualUseCase()
+            if (currentUser != null) {
+                _state.update { it.copy(usuario = currentUser, isLoading = false) }
+            } else {
+                _state.update { it.copy(isLoading = false) }
+            }
+        }
+    }
 
     fun onEvent(event: AuthEvent) {
         when (event) {
